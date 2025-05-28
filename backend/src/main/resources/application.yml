@@ -70,7 +70,7 @@ crawler:
 # 阿里云百炼大模型配置
 alibaba:
   ai:
-    api-key: sk-da3c4b1e330140b8af7490af53e57607
+    api-key: ${ALIBABA_AI_API_KEY}
     base-url: https://dashscope.aliyuncs.com
     model:
       translation: qwen-turbo
