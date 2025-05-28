@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpideAdmin - 用户管理</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 {
+            color: #2d3748;
+            font-size: 24px;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .user-info {
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .page-title {
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 12px;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h2 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .stats {
+            color: #718096;
+            font-size: 14px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table th {
+            background: #f8fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .table td {
+            color: #2d3748;
+            font-size: 14px;
+        }
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-active {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        .status-inactive {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        .role-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .role-admin {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .role-user {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+        .pagination a {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .pagination a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+        .pagination .current {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background: #c6f6d5;
+            color: #2f855a;
+            border: 1px solid #9ae6b4;
+        }
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>🕷️ SpideAdmin</h1>
+        </div>
+        <div class="nav">
+            <a href="/spideAdmin/dashboard">仪表板</a>
+            <a href="/spideAdmin/articles">文章管理</a>
+            <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/users" class="active">用户管理</a>
+        </div>
+        <div class="user-info">
+            欢迎, <span th:text="${session.user?.username ?: 'admin'}">admin</span> | 
+            <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1 class="page-title">👤 用户管理</h1>
+            <a href="/spideAdmin/users/new" class="btn">➕ 新增用户</a>
+        </div>
+
+        <!-- 消息提示 -->
+        <div th:if="${successMessage}" class="alert alert-success">
+            ✅ <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-error">
+            ❌ <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- 用户列表 -->
+        <div class="card">
+            <div class="card-header">
+                <h2>用户列表</h2>
+                <div class="stats">
+                    总计 <strong th:text="${totalUsers}">0</strong> 个用户
+                </div>
+            </div>
+            
+            <div th:if="${not #lists.isEmpty(users.content)}">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>最后登录</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users.content}">
+                            <td th:text="${user.id}">1</td>
+                            <td>
+                                <strong th:text="${user.username}">admin</strong>
+                            </td>
+                            <td th:text="${user.email ?: '-'}">admin@example.com</td>
+                            <td>
+                                <span class="role-badge" 
+                                      th:classappend="${user.role.name() == 'ADMIN'} ? 'role-admin' : 'role-user'"
+                                      th:text="${user.role.name() == 'ADMIN'} ? '管理员' : '普通用户'">
+                                    管理员
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge" 
+                                      th:classappend="${user.enabled} ? 'status-active' : 'status-inactive'"
+                                      th:text="${user.enabled} ? '启用' : '禁用'">
+                                    启用
+                                </span>
+                            </td>
+                            <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 00:00</td>
+                            <td th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
+                            <td>
+                                <div class="actions">
+                                    <a th:href="@{/spideAdmin/users/{id}/edit(id=${user.id})}" 
+                                       class="btn btn-sm">✏️ 编辑</a>
+                                    
+                                    <a th:href="@{/spideAdmin/users/{id}/change-password(id=${user.id})}" 
+                                       class="btn btn-sm btn-warning">🔑 改密</a>
+                                    
+                                    <form th:action="@{/spideAdmin/users/{id}/toggle-status(id=${user.id})}" 
+                                          method="post" style="display: inline;">
+                                        <button type="submit" 
+                                                class="btn btn-sm"
+                                                th:classappend="${user.enabled} ? 'btn-warning' : 'btn-success'"
+                                                th:text="${user.enabled} ? '🚫 禁用' : '✅ 启用'"
+                                                th:disabled="${user.username == 'admin'}">
+                                            🚫 禁用
+                                        </button>
+                                    </form>
+                                    
+                                    <form th:action="@{/spideAdmin/users/{id}/delete(id=${user.id})}" 
+                                          method="post" style="display: inline;"
+                                          onsubmit="return confirm('确定要删除用户 ' + this.dataset.username + ' 吗？')"
+                                          th:data-username="${user.username}">
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-danger"
+                                                th:disabled="${user.username == 'admin'}">
+                                            🗑️ 删除
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 空状态 -->
+            <div th:if="${#lists.isEmpty(users.content)}" class="empty-state">
+                <div class="empty-state-icon">👤</div>
+                <h3>暂无用户</h3>
+                <p>点击上方"新增用户"按钮创建第一个用户</p>
+            </div>
+        </div>
+
+        <!-- 分页导航 -->
+        <nav class="pagination" th:if="${users.totalPages > 1}">
+            <a th:if="${users.hasPrevious()}" 
+               th:href="@{/spideAdmin/users(page=${currentPage - 1})}">← 上一页</a>
+            
+            <span th:if="${!users.hasPrevious()}" style="color: #cbd5e1;">← 上一页</span>
+            
+            <span class="current" 
+                  th:text="|第 ${currentPage + 1} 页 / 共 ${users.totalPages} 页|">
+                  第 1 页 / 共 1 页
+            </span>
+            
+            <a th:if="${users.hasNext()}" 
+               th:href="@{/spideAdmin/users(page=${currentPage + 1})}">下一页 →</a>
+            
+            <span th:if="${!users.hasNext()}" style="color: #cbd5e1;">下一页 →</span>
+        </nav>
+    </div>
+</body>
+</html> 

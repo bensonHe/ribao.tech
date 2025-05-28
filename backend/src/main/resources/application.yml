@@ -1,0 +1,77 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: tech-daily-backend
+  
+  # 允许循环引用
+  main:
+    allow-circular-references: true
+  
+  # 数据库配置（使用H2作为开发数据库）
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  # H2控制台配置
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+  
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+# 日志配置
+logging:
+  level:
+    com.spideman: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 应用自定义配置
+app:
+  name: IT技术日报系统
+  version: 1.0.0
+  description: 抓取国外热门IT技术文章并生成AI日报
+
+# 爬虫配置
+crawler:
+  schedule:
+    enabled: true # 是否启用定时爬取
+  sources:
+    hackernews:
+      enabled: true
+      timeout: 10000
+    github:
+      enabled: true
+      timeout: 15000
+    devto:
+      enabled: true
+      timeout: 10000
+
+# 阿里云百炼大模型配置
+alibaba:
+  ai:
+    api-key: sk-da3c4b1e330140b8af7490af53e57607
+    base-url: https://dashscope.aliyuncs.com
+    model:
+      translation: qwen-turbo
+      summarization: qwen-plus

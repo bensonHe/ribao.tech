@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpideAdmin - 管理仪表板</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 {
+            color: #2d3748;
+            font-size: 24px;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .user-info {
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card .number {
+            color: #2d3748;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .card-header h2 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .article-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .article-item:last-child {
+            border-bottom: none;
+        }
+        .article-info h4 {
+            color: #2d3748;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .article-meta {
+            color: #718096;
+            font-size: 12px;
+        }
+        .source-badge {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 12px;
+        }
+        .crawler-source {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 14px;
+            color: #2f855a;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>🕷️ SpideAdmin</h1>
+        </div>
+        <div class="nav">
+            <a href="/spideAdmin/dashboard" class="active">仪表板</a>
+            <a href="/spideAdmin/articles">文章管理</a>
+            <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/users">用户管理</a>
+        </div>
+        <div class="user-info">
+            欢迎, <span th:text="${user.username}">admin</span> | 
+            <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>📚 文章总数</h3>
+                <div class="number" th:text="${totalArticles}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>🕷️ 爬虫源</h3>
+                <div class="number" th:text="${#lists.size(crawlerSources)}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>👤 用户总数</h3>
+                <div class="number" th:text="${totalUsers}">1</div>
+            </div>
+            <div class="stat-card">
+                <h3>📈 今日爬取</h3>
+                <div class="number">-</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2>📰 最新文章</h2>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(latestArticles)}">
+                        <p style="color: #718096; text-align: center; padding: 2rem;">暂无文章数据</p>
+                    </div>
+                    <div th:each="article : ${latestArticles}" class="article-item">
+                        <div class="article-info">
+                            <h4 th:text="${article.title}">文章标题</h4>
+                            <div class="article-meta">
+                                <span th:text="${article.author}">作者</span> · 
+                                <span th:text="${#temporals.format(article.publishTime, 'MM-dd HH:mm')}">时间</span>
+                            </div>
+                        </div>
+                        <span class="source-badge" th:text="${article.source}">来源</span>
+                    </div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <a href="/spideAdmin/articles" class="btn btn-sm">查看全部文章</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>🔧 快速操作</h2>
+                </div>
+                <div class="card-body">
+                    <h3 style="margin-bottom: 1rem; color: #4a5568;">可用爬虫源:</h3>
+                    <div th:each="source : ${crawlerSources}" class="crawler-source" th:text="${source}">爬虫源</div>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <form action="/spideAdmin/crawler/quick-crawl" method="post" style="margin-bottom: 1rem;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <button type="submit" class="btn" style="width: 100%;">⚡ 快速爬取</button>
+                        </form>
+                        
+                        <a href="/spideAdmin/crawler" class="btn" style="width: 100%; text-align: center;">🔧 爬虫管理</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|${#temporals.format(#temporals.createNow(), 'M月d日')},今天全球科技IT界发生了啥|">今天全球科技IT界发生了啥</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+        
+        /* 页面标题 */
+        .page-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .page-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        .page-subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        /* 主要内容 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .page-title h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        /* 日报区域 */
+        .daily-report {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+        .daily-report h2 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .report-content {
+            line-height: 1.6;
+            color: #475569;
+        }
+        .report-content h3 {
+            color: #1e293b;
+            font-size: 1rem;
+            margin: 1rem 0 0.5rem 0;
+        }
+        .report-content ul, .report-content ol {
+            padding-left: 1.5rem;
+            margin: 0.5rem 0;
+        }
+        .report-content li {
+            margin: 0.25rem 0;
+        }
+        .generate-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 1rem;
+        }
+        .generate-btn:hover {
+            transform: translateY(-1px);
+        }
+        .generate-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        /* 文章列表 */
+        .articles-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+        .articles-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* 文章卡片 */
+        .article-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        .article-source {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .source-badge {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        .article-title-zh {
+            color: #64748b;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+        .article-summary {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .article-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .article-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .article-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #64748b;
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+            color: #475569;
+        }
+        
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .pagination a {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .pagination a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+        .pagination .current {
+            color: #475569;
+            font-weight: 500;
+        }
+        
+        /* 底部 */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 2rem;
+        }
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面标题 -->
+    <div class="page-title">
+        <h1 th:text="|${#temporals.format(#temporals.createNow(), 'M月d日')},今天全球科技IT界发生了啥|">5月27日,今天全球科技IT界发生了啥</h1>
+        <p class="page-subtitle">汇聚全球优质技术资讯，AI智能筛选，中英双语对照</p>
+    </div>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <section class="articles-section">
+            <h2>📰 最新资讯</h2>
+            
+            <!-- 文章列表 -->
+            <div class="articles-grid" th:if="${not #lists.isEmpty(articles.content)}">
+                <article class="article-card" 
+                         th:each="article : ${articles.content}"
+                         th:data-url="${article.url}"
+                         onclick="window.open(this.dataset.url, '_blank')"
+                         style="cursor: pointer;">
+                    
+                    <div class="article-meta">
+                        <div class="article-source">
+                            <span class="source-badge" th:text="${article.source}">Source</span>
+                            <span th:if="${article.author}" th:text="'by ' + ${article.author}"></span>
+                        </div>
+                        <time th:text="${#temporals.format(article.publishTime, 'MM-dd HH:mm')}">时间</time>
+                    </div>
+                    
+                    <h3 class="article-title" th:text="${article.title}">文章标题</h3>
+                    <p class="article-title-zh" 
+                       th:if="${article.titleZh}" 
+                       th:text="${article.titleZh}">中文标题</p>
+                    
+                    <p class="article-summary" 
+                       th:text="${article.summaryZh != null ? article.summaryZh : article.summary}">
+                       文章摘要...
+                    </p>
+                    
+                    <div class="article-footer">
+                        <div class="article-stats">
+                            <span class="stat">
+                                👁️ <span th:text="${article.views}">0</span>
+                            </span>
+                            <span class="stat">
+                                ❤️ <span th:text="${article.likes}">0</span>
+                            </span>
+                        </div>
+                        
+                        <div class="article-tags" th:if="${article.tags}">
+                            <span class="tag" 
+                                  th:each="tag : ${#strings.listSplit(article.tags, ',')}"
+                                  th:text="${tag}">标签</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            
+            <!-- 空状态 -->
+            <div class="empty-state" th:if="${#lists.isEmpty(articles.content)}">
+                <div class="empty-state-icon">📰</div>
+                <h3>暂无文章</h3>
+                <p>正在努力抓取最新技术资讯，请稍后再来查看</p>
+            </div>
+            
+            <!-- 分页导航 -->
+            <nav class="pagination" th:if="${articles.totalPages > 1}">
+                <a th:if="${articles.hasPrevious()}" 
+                   th:href="@{/(page=${currentPage - 1})}">← 上一页</a>
+                
+                <span th:if="${!articles.hasPrevious()}" style="color: #cbd5e1;">← 上一页</span>
+                
+                <span class="current" 
+                      th:text="|第 ${currentPage + 1} 页 / 共 ${articles.totalPages} 页|">
+                      第 1 页 / 共 1 页
+                </span>
+                
+                <a th:if="${articles.hasNext()}" 
+                   th:href="@{/(page=${currentPage + 1})}">下一页 →</a>
+                
+                <span th:if="${!articles.hasNext()}" style="color: #cbd5e1;">下一页 →</span>
+            </nav>
+        </section>
+        
+        <!-- 右侧日报区域 -->
+        <aside class="daily-report">
+            <h2 th:text="|🤖 ${#temporals.format(#temporals.createNow(), 'M月d日')}AI技术日报|">🤖 5月27日AI技术日报</h2>
+            <button class="generate-btn" onclick="generateDailyReport()">
+                🔄 重新生成日报
+            </button>
+            <div id="report-content" class="report-content">
+                <p style="color: #64748b; text-align: center; padding: 2rem 0;">
+                    点击上方按钮生成基于今日采集文章的AI技术日报
+                </p>
+            </div>
+        </aside>
+    </main>
+
+    <!-- 底部链接 -->
+    <footer>
+        <p>
+            🔧 <a href="/spideAdmin/login">管理后台</a> | 
+            📊 <a href="/h2-console">数据库控制台</a> | 
+            🚀 <a href="/api/articles">API文档</a>
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.875rem;">
+            © 2025 AI技术日报 - 让技术学习更高效
+        </p>
+    </footer>
+
+    <script th:inline="none">
+        /*<![CDATA[*/
+        // 生成每日技术日报
+        function generateDailyReport() {
+            const button = document.querySelector('.generate-btn');
+            const content = document.getElementById('report-content');
+            
+            // 禁用按钮，显示加载状态
+            button.disabled = true;
+            button.textContent = '🔄 生成中...';
+            content.innerHTML = '<div class="loading">🤖 AI正在分析今日技术文章，生成专业日报...<br/>这可能需要1-2分钟，请耐心等待</div>';
+            
+            fetch('/api/daily-report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 将Markdown转换为HTML显示
+                    const htmlContent = convertMarkdownToHtml(data.report);
+                    content.innerHTML = `
+                        <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f0fff4; border-radius: 4px; font-size: 0.875rem; color: #2f855a;">
+                            ✅ 基于 ${data.articleCount} 篇文章生成 | 生成时间: ${new Date(data.generatedAt).toLocaleString()}
+                        </div>
+                        ${htmlContent}
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div style="color: #e53e3e; text-align: center; padding: 1rem;">
+                            ❌ ${data.message}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('生成日报失败:', error);
+                content.innerHTML = `
+                    <div style="color: #e53e3e; text-align: center; padding: 1rem;">
+                        ❌ 网络错误，请检查连接后重试
+                    </div>
+                `;
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                button.disabled = false;
+                button.textContent = '🔄 重新生成日报';
+            });
+        }
+
+        // 简单的Markdown到HTML转换
+        function convertMarkdownToHtml(markdown) {
+            return markdown
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                .replace(/^• (.*$)/gim, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^(.*)$/gim, '<p>$1</p>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                .replace(/<p><\/p>/g, '');
+        }
+        /*]]>*/
+    </script>
+</body>
+</html> 

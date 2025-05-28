@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpideAdmin - 爬虫管理</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 { color: #2d3748; font-size: 24px; }
+        .nav { display: flex; gap: 1rem; }
+        .nav a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav a:hover, .nav a.active { background: #e2e8f0; color: #2d3748; }
+        .user-info { color: #4a5568; font-size: 14px; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f7fafc;
+        }
+        .card-header h2 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .card-body { padding: 1.5rem; }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-success {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+        .btn-info {
+            background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .crawler-source {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .source-info {
+            color: #2f855a;
+            font-weight: 500;
+        }
+        .source-status {
+            background: #2f855a;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .alert-success {
+            background: #f0fff4;
+            color: #2f855a;
+            border: 1px solid #c6f6d5;
+        }
+        .alert-error {
+            background: #fee;
+            color: #c53030;
+            border: 1px solid #fed7d7;
+        }
+        .description {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>🕷️ SpideAdmin</h1>
+        </div>
+        <div class="nav">
+            <a href="/spideAdmin/dashboard">仪表板</a>
+            <a href="/spideAdmin/articles">文章管理</a>
+            <a href="/spideAdmin/crawler" class="active">爬虫管理</a>
+            <a href="/spideAdmin/users">用户管理</a>
+        </div>
+        <div class="user-info">
+            欢迎, admin | 
+            <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+        
+        <div class="grid">
+            <!-- 快速爬取 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚡ 快速爬取</h2>
+                </div>
+                <div class="card-body">
+                    <p class="description">
+                        从所有可用源各爬取2篇最新文章，适合快速更新内容。
+                    </p>
+                    
+                    <form action="/spideAdmin/crawler/quick-crawl" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-success">⚡ 开始快速爬取</button>
+                    </form>
+                    
+                    <p style="color: #718096; font-size: 12px;">
+                        预计时间：30-60秒
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 完整爬取 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🔄 完整爬取</h2>
+                </div>
+                <div class="card-body">
+                    <p class="description">
+                        从所有可用源爬取更多文章，可自定义每个源的文章数量。
+                    </p>
+                    
+                    <form action="/spideAdmin/crawler/full-crawl" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="form-group">
+                            <label for="articlesPerSource">每个源爬取文章数</label>
+                            <input type="number" id="articlesPerSource" name="articlesPerSource" 
+                                   value="5" min="1" max="20" required>
+                        </div>
+                        <button type="submit" class="btn btn-info">🔄 开始完整爬取</button>
+                    </form>
+                    
+                    <p style="color: #718096; font-size: 12px;">
+                        预计时间：1-3分钟
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <div class="card">
+                <div class="card-header">
+                    <h2>🎯 指定源爬取</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid" style="grid-template-columns: 1fr 2fr;">
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: #4a5568;">可用爬虫源</h3>
+                            <div th:each="source : ${sources}" class="crawler-source">
+                                <div class="source-info" th:text="${source}">爬虫源</div>
+                                <div class="source-status">✅ 可用</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <p class="description">
+                                选择特定的爬虫源进行精确爬取，可以针对性地获取某个网站的最新内容。
+                            </p>
+                            
+                            <form action="/spideAdmin/crawler/crawl-source" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <div class="form-group">
+                                    <label for="source">选择爬虫源</label>
+                                    <select id="source" name="source" required>
+                                        <option value="">请选择爬虫源...</option>
+                                        <option th:each="src : ${sources}" th:value="${src}" th:text="${src}"></option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="limit">爬取文章数量</label>
+                                    <input type="number" id="limit" name="limit" 
+                                           value="10" min="1" max="50" required>
+                                </div>
+                                
+                                <button type="submit" class="btn">🎯 开始爬取</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <div class="card">
+                <div class="card-header">
+                    <h2>ℹ️ 爬虫说明</h2>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <div>
+                            <h4 style="color: #2d3748; margin-bottom: 0.5rem;">🚀 Hacker News</h4>
+                            <p style="color: #718096; font-size: 14px;">
+                                通过 Firebase API 获取热门技术文章，包含评分和讨论数据。
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: #2d3748; margin-bottom: 0.5rem;">📊 GitHub Trending</h4>
+                            <p style="color: #718096; font-size: 14px;">
+                                爬取 GitHub 热门项目，包含 Star 数和项目描述信息。
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: #2d3748; margin-bottom: 0.5rem;">💻 Dev.to</h4>
+                            <p style="color: #718096; font-size: 14px;">
+                                获取开发者社区的热门技术文章和教程内容。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #f7fafc; border-radius: 6px;">
+                        <h4 style="color: #2d3748; margin-bottom: 0.5rem;">⚠️ 注意事项</h4>
+                        <ul style="color: #718096; font-size: 14px; margin-left: 1.5rem;">
+                            <li>爬取过程中请避免频繁操作，以免对目标网站造成负担</li>
+                            <li>系统会自动去重，已存在的文章不会重复保存</li>
+                            <li>建议在低峰时段进行大量爬取操作</li>
+                            <li>如果某个源长时间无响应，请检查网络连接</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
