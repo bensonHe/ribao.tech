@@ -1,6 +1,30 @@
-# TechDaily - 每日技术精选门户
+# 📰 Ribao.Tech - 每日技术精选门户
 
-🚀 一个基于Spring Boot + React的技术文章聚合平台，通过AI智能生成每日技术日报。
+> 🎯 **[立即体验 → www.ribao.tech](http://www.ribao.tech)** | 每天5分钟，掌握全球技术动态！
+
+[![在线预览](https://img.shields.io/badge/🌐_在线预览-www.ribao.tech-blue?style=for-the-badge)](http://www.ribao.tech)
+[![GitHub](https://img.shields.io/badge/⭐_GitHub-bensonHe/ribao.tech-black?style=for-the-badge)](https://github.com/bensonHe/ribao.tech)
+[![技术栈](https://img.shields.io/badge/💻_技术栈-Spring_Boot_+_AI-green?style=for-the-badge)](#技术架构)
+
+🚀 **Ribao.Tech** 是一个基于AI驱动的国际技术资讯聚合平台，每日为你精选全球最新的技术文章和行业动态。无需翻墙，无需订阅，一站式获取 Hacker News、GitHub Trending、InfoQ 等顶级技术社区的精华内容！
+
+## ✨ 为什么选择 Ribao.Tech？
+
+🔥 **每日精选** - 自动聚合全球6大技术社区热门文章，AI智能筛选  
+🌍 **国际视野** - 第一时间获取硅谷、欧洲技术前沿动态  
+🤖 **AI解读** - 阿里云大模型深度解析，提炼核心技术洞察  
+📱 **随时随地** - 响应式设计，手机、电脑都能完美阅读  
+🆓 **完全免费** - 无广告、无付费墙，开源透明  
+
+## 🎯 核心亮点
+
+- 🌟 **智能日报生成** - AI自动生成每日技术趋势报告
+- 🔍 **多源聚合** - Hacker News、Dev.to、GitHub Trending、InfoQ、IBM Developer、Daily.dev
+- 🌐 **中英双语** - 原文保留，AI智能翻译和总结
+- 📊 **数据洞察** - 技术热度趋势、开发者关注度分析
+- ⚡ **实时更新** - 24小时不间断抓取最新技术资讯
+
+> 💡 **开发者必备** - 让繁忙的你在碎片时间里也能跟上技术发展的步伐！
 
 ## 📋 项目简介
 
@@ -67,6 +91,25 @@ spideman/
 ```
 
 ## 🚀 快速开始
+
+### 🌟 在线体验（推荐）
+
+**最简单的方式：直接访问线上版本！**
+
+🔗 **[www.ribao.tech](http://www.ribao.tech)** - 立即开始你的技术资讯之旅
+
+✨ **功能亮点预览：**
+- 📰 每日技术资讯自动聚合
+- 🤖 AI智能生成技术日报 
+- 🔥 GitHub每日热门项目TOP3
+- 🌍 国际技术社区精选内容
+- 📱 完美适配手机端阅读
+
+> 💡 **小贴士**：建议收藏网址并设为书签，每天花5分钟浏览最新技术动态，保持技术敏感度！
+
+---
+
+### 💻 本地开发部署
 
 ### 开发环境要求
 
@@ -200,9 +243,27 @@ cd /tmp/deploy-package
 
 ## 📞 联系方式
 
-- 项目地址: https://github.com/bensonHe/spideman
-- 问题反馈: [Issues](https://github.com/bensonHe/spideman/issues)
+- 🌐 **在线访问**: [www.ribao.tech](http://www.ribao.tech)
+- 💻 **项目地址**: [github.com/bensonHe/ribao.tech](https://github.com/bensonHe/ribao.tech)
+- 🐛 **问题反馈**: [Issues](https://github.com/bensonHe/ribao.tech/issues)
+- 📧 **商务合作**: 通过GitHub Issues联系
 
 ---
+
+## 🚀 立即开始使用
+
+### 👨‍💻 对于开发者
+- 🔍 **快速预览** → [www.ribao.tech](http://www.ribao.tech)
+- ⭐ **支持项目** → [GitHub Star](https://github.com/bensonHe/ribao.tech)
+- 🍴 **参与开发** → Fork & Pull Request
+- 📝 **反馈建议** → [提交Issues](https://github.com/bensonHe/ribao.tech/issues)
+
+### 📱 对于用户  
+- 🌐 **每日访问** → [www.ribao.tech](http://www.ribao.tech)
+- 📌 **收藏书签** → Ctrl+D 添加收藏
+- 📱 **手机访问** → 移动端完美适配
+- 🔔 **推荐朋友** → 分享给同事朋友
+
+> 🎯 **Ribao.Tech** - 你的专属技术资讯管家，让每一天都有新收获！
 
 **让技术学习更高效！** 🚀 
