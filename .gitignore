@@ -161,6 +161,8 @@ access.log*
 # Application specific
 application-local.yml
 application-dev.yml
+application-prod.yml
+application.yml
 
 # Keep deploy package JAR but ignore other JARs
 !deploy-package/techdaily.jar 

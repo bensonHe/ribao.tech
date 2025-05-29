@@ -1,98 +1,82 @@
 server:
   port: 8080
-  servlet:
-    context-path: /
-  tomcat:
-    max-threads: 200
-    min-spare-threads: 10
 
 spring:
+  application:
+    name: tech-daily-backend
+  
+  # 允许循环引用
+  main:
+    allow-circular-references: true
+  
+  # 数据库配置（使用MySQL）
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:techdaily}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:techdaily}
-    password: ${DB_PASSWORD:changeme}
+    url: jdbc:mysql://47.237.80.97:3306/techdaily?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
+    username: techdaily
+    password: TechDaily2025!
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-
+  
+  # JPA配置
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
     properties:
       hibernate:
+        format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: false
-    open-in-view: false
-
-  thymeleaf:
-    cache: true
-    mode: HTML
-    encoding: UTF-8
-
+        jdbc:
+          time_zone: Asia/Shanghai
+  
+  # Jackson配置
   jackson:
-    time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
 
-  task:
-    execution:
-      pool:
-        core-size: 5
-        max-size: 20
-        queue-capacity: 100
-    scheduling:
-      pool:
-        size: 5
-
+# 日志配置
 logging:
   level:
-    root: INFO
     com.spideman: INFO
-    org.springframework.security: WARN
-    org.hibernate.SQL: WARN
+    org.springframework: INFO
+    org.hibernate: WARN
+    root: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: /var/log/techdaily/application.log
-    max-size: 100MB
-    max-history: 30
 
-# 应用配置
+# 应用自定义配置
 app:
-  name: TechDaily
+  name: IT技术日报系统
   version: 1.0.0
-  description: 每日技术精选门户
+  description: 抓取国外热门IT技术文章并生成AI日报
 
 # 爬虫配置
 crawler:
-  enabled: true
   schedule:
-    quick-crawl: "0 0 */6 * * ?" # 每6小时执行一次快速爬取
-    full-crawl: "0 0 2 * * ?" # 每天凌晨2点执行完整爬取
-  timeout: 30000
-  retry-count: 3
-  user-agent: "TechDaily-Bot/1.0"
+    enabled: false # 默认禁用定时爬取，避免启动时阻塞
+  startup:
+    enabled: false # 禁用启动时爬取
+  sources:
+    hackernews:
+      enabled: true
+      timeout: 5000 # 连接超时5秒
+    github:
+      enabled: true
+      timeout: 5000
+    devto:
+      enabled: true
+      timeout: 5000
 
-# AI服务配置（使用环境变量）
+# 阿里云百炼大模型配置
 alibaba:
   ai:
-    api-key: ${ALIBABA_AI_API_KEY:your-api-key-here}
+    api-key: sk-da3c4b1e330140b8af7490af53e57607
     base-url: https://dashscope.aliyuncs.com
     model:
       translation: qwen-turbo
       summarization: qwen-plus
-
-# 管理配置
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: when-authorized 
