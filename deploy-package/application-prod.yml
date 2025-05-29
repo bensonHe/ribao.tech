@@ -8,9 +8,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/techdaily?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: techdaily
-    password: TechDaily2025!
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:techdaily}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:techdaily}
+    password: ${DB_PASSWORD:changeme}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -78,12 +78,14 @@ crawler:
   retry-count: 3
   user-agent: "TechDaily-Bot/1.0"
 
-# AI服务配置 (如果需要)
-ai:
-  enabled: false
-  alibaba:
-    api-key: sk-da3c4b1e330140b8af7490af53e57607
-    model: qwen-plus
+# AI服务配置（使用环境变量）
+alibaba:
+  ai:
+    api-key: ${ALIBABA_AI_API_KEY:your-api-key-here}
+    base-url: https://dashscope.aliyuncs.com
+    model:
+      translation: qwen-turbo
+      summarization: qwen-plus
 
 # 管理配置
 management:

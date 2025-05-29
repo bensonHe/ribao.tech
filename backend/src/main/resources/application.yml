@@ -9,12 +9,12 @@ spring:
   main:
     allow-circular-references: true
   
-  # 数据库配置（使用MySQL）
+  # 数据库配置（使用环境变量）
   datasource:
-    url: jdbc:mysql://47.237.80.97:3306/techdaily?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:techdaily}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: techdaily
-    password: TechDaily2025!
+    username: ${DB_USERNAME:techdaily}
+    password: ${DB_PASSWORD:changeme}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -72,10 +72,10 @@ crawler:
       enabled: true
       timeout: 5000
 
-# 阿里云百炼大模型配置
+# 阿里云百炼大模型配置（使用环境变量）
 alibaba:
   ai:
-    api-key: sk-da3c4b1e330140b8af7490af53e57607
+    api-key: ${ALIBABA_AI_API_KEY:your-api-key-here}
     base-url: https://dashscope.aliyuncs.com
     model:
       translation: qwen-turbo

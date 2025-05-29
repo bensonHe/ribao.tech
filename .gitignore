@@ -91,25 +91,67 @@ lerna-debug.log*
 frontend/build/
 frontend/dist/
 
-# Environment variables
+# ================================
+# 🔐 安全相关文件 - 绝对不能提交
+# ================================
+# 环境变量文件
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+*.env
+config/.env
+deploy-package/.env
 
-# Application logs
-logs/
-*.log
+# 包含敏感信息的配置文件
+application-secrets.yml
+application-private.yml
+secrets.yml
+private.yml
+*-secret.yml
+*-private.yml
 
-# Database
+# 数据库相关
 *.db
 *.sqlite
 *.sqlite3
+database.properties
+
+# 密钥和证书文件
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*.truststore
+secrets/
+keys/
+certs/
+
+# API密钥文件
+api-keys.txt
+credentials.txt
+tokens.txt
+
+# 备份文件可能包含敏感信息
+*.backup
+*.bak
+*.old
+*-backup.*
+
+# ================================
+# 应用日志和临时文件
+# ================================
+# Application logs
+logs/
+*.log
+application.log*
+error.log*
+access.log*
 
 # Temporary files
 *.tmp
 *.temp
+*.cache
 
 # IDE specific files
 *.swp
