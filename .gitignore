@@ -110,6 +110,28 @@ private.yml
 *-secret.yml
 *-private.yml
 
+# ================================
+# 🚫 Spring Boot 配置文件 - 包含敏感信息
+# ================================
+# 所有application配置文件（通配符匹配）
+application.yml
+application*.yml
+**/application.yml
+**/application*.yml
+
+# 特定路径的配置文件
+backend/src/main/resources/application*.yml
+deploy-package/application*.yml  
+deploy/application*.yml
+config/application*.yml
+
+# 各环境配置文件（具体列出常见的）
+application-local.yml
+application-dev.yml
+application-test.yml
+application-prod.yml
+application-staging.yml
+
 # 数据库相关
 *.db
 *.sqlite
@@ -157,12 +179,6 @@ access.log*
 *.swp
 *.swo
 *~
-
-# Application specific
-application-local.yml
-application-dev.yml
-application-prod.yml
-application.yml
 
 # Keep deploy package JAR but ignore other JARs
 !deploy-package/techdaily.jar 
