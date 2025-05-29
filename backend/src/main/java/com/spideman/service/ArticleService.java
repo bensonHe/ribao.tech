@@ -296,6 +296,22 @@ public class ArticleService {
     }
     
     /**
+     * 根据日期范围获取文章
+     */
+    public List<Article> getArticlesByDateRange(LocalDateTime startTime, LocalDateTime endTime) {
+        log.info("🔍 查询日期范围内的文章: {} 到 {}", startTime, endTime);
+        
+        try {
+            List<Article> articles = articleRepository.findByPublishTimeBetween(startTime, endTime);
+            log.info("📊 找到 {} 篇文章", articles.size());
+            return articles;
+        } catch (Exception e) {
+            log.error("❌ 查询日期范围内的文章失败", e);
+            return Arrays.asList();
+        }
+    }
+    
+    /**
      * 转换为DTO
      */
     private ArticleDTO convertToDTO(Article article) {

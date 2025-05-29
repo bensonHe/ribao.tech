@@ -1,316 +1,244 @@
-# TechDaily 部署指南
+# TechDaily 技术日报系统 - 部署包
 
-## 📦 部署包内容
+## 📦 版本信息
 
-```
-deploy-package/
-├── techdaily.jar              # 应用JAR包 (53MB)
-├── application-prod.yml       # 生产环境配置
-├── init.sql                   # 数据库初始化脚本
-├── logback-spring.xml         # 日志配置文件
-├── start.sh                   # 启动脚本
-└── README.md                  # 部署指南
-```
+- **版本**: v1.0.0
+- **编译时间**: 2025-05-29
+- **Spring Boot**: 2.7.18
+- **Java**: 8+
 
-## 📋 前提条件
+## 🚀 快速部署
 
-- ✅ MySQL 已安装并配置
-- ✅ MySQL 用户名: `root`
-- ✅ MySQL 密码: `TechDaily2024!`
-- ✅ Java 8+ 已安装
-- ✅ 部署目录: `/usr/local/runtime/techdaily`
+### 1. 系统要求
 
-## 🚀 部署步骤
+- Java 8 或更高版本
+- MySQL 5.7 或更高版本
+- 至少 512MB 内存
 
-### 1. 上传文件到服务器
+### 2. 数据库准备
 
 ```bash
-# 上传部署包到服务器
-scp -r deploy-package/ root@47.237.80.97:/tmp/
+# 1. 登录MySQL
+mysql -u root -p
+
+# 2. 创建数据库
+CREATE DATABASE techdaily CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# 3. 创建用户（可选）
+CREATE USER 'techdaily'@'%' IDENTIFIED BY 'TechDaily2025!';
+GRANT ALL PRIVILEGES ON techdaily.* TO 'techdaily'@'%';
+FLUSH PRIVILEGES;
+
+# 4. 导入初始数据（可选）
+mysql -u techdaily -p techdaily < init.sql
 ```
 
-### 2. 连接服务器并部署
+### 3. 配置文件
 
+#### 生产环境配置 (application-prod.yml)
+- 数据库连接配置
+- 日志配置
+- AI服务配置
+
+#### 开发环境配置 (application-dev.yml)
+- 本地开发数据库配置
+- 调试日志配置
+
+### 4. 启动应用
+
+#### 方式一：使用启动脚本（推荐）
 ```bash
-# 连接服务器
-ssh root@47.237.80.97
-
-# 创建应用目录
-mkdir -p /usr/local/runtime/techdaily
-
-# 复制文件
-cd /tmp/deploy-package
-cp techdaily.jar /usr/local/runtime/techdaily/
-cp start.sh /usr/local/runtime/techdaily/
-cp init.sql /usr/local/runtime/techdaily/
-cp logback-spring.xml /usr/local/runtime/techdaily/
-chmod +x /usr/local/runtime/techdaily/start.sh
-
-# 启动应用
-cd /usr/local/runtime/techdaily
-./start.sh start
+chmod +x start.sh
+./start.sh
 ```
 
-## 🔧 启动脚本功能
-
-### 主要功能
-
-1. **数据库初始化**
-   - 检查 MySQL 连接
-   - 检查数据库 `techdaily` 是否存在，不存在则创建
-   - 运行 `init.sql` 表初始化脚本
-
-2. **Java程序启动**
-   - 检查 JAR 文件和 Java 环境
-   - 启动应用并记录进程 PID
-   - 检查启动状态和端口监听
-
-3. **重启功能**
-   - 优雅停止现有进程
-   - 重新启动应用
-
-4. **增强的日志记录**
-   - 详细记录文章查询过程和结果
-   - AI日报生成的完整调用链路日志
-   - 包含调用参数、耗时、错误信息等调试信息
-
-### 使用命令
-
+#### 方式二：直接运行jar包
 ```bash
-# 启动应用（包含数据库初始化）
-./start.sh start
+# 使用生产配置
+java -jar techdaily.jar --spring.profiles.active=prod
 
-# 停止应用
-./start.sh stop
+# 使用开发配置
+java -jar techdaily.jar --spring.profiles.active=dev
 
-# 重启应用
-./start.sh restart
-
-# 查看状态
-./start.sh status
-
-# 查看日志
-./start.sh logs
-
-# 仅初始化数据库
-./start.sh init
-
-# 显示帮助
-./start.sh help
+# 指定配置文件
+java -jar techdaily.jar --spring.config.location=application-prod.yml
 ```
 
-## 📁 文件位置
-
-```
-/usr/local/runtime/techdaily/
-├── techdaily.jar              # 应用JAR包
-├── start.sh                   # 启动脚本
-├── init.sql                   # 数据库脚本
-├── logback-spring.xml         # 日志配置文件
-├── techdaily.pid              # 进程ID文件
-└── logs/                      # 日志目录
-    ├── app-info.log           # INFO级别日志
-    ├── app-warn.log           # WARN级别日志
-    ├── app-error.log          # ERROR级别日志
-    ├── app2024-12-19-info.log # 按天轮换的历史日志
-    ├── app2024-12-19-warn.log
-    └── app2024-12-19-error.log
-
-/var/log/techdaily/
-└── application.log            # 启动日志
-```
-
-## 📋 日志配置
-
-### 日志文件说明
-
-- **app-info.log**: INFO级别日志，记录应用正常运行信息
-- **app-warn.log**: WARN级别日志，记录警告信息
-- **app-error.log**: ERROR级别日志，记录错误信息
-- **按天轮换**: 每天自动创建新的日志文件，格式为 `app{yyyy-MM-dd}-{level}.log`
-
-### 日志保留策略
-
-- INFO日志: 保留30天，总大小限制10GB
-- WARN日志: 保留30天，总大小限制5GB
-- ERROR日志: 保留60天，总大小限制5GB
-
-### 查看日志
-
+#### 方式三：后台运行
 ```bash
-# 查看实时INFO日志
-tail -f /usr/local/runtime/techdaily/logs/app-info.log
-
-# 查看实时ERROR日志
-tail -f /usr/local/runtime/techdaily/logs/app-error.log
-
-# 查看启动日志
-tail -f /var/log/techdaily/application.log
-
-# 查看所有日志文件
-ls -la /usr/local/runtime/techdaily/logs/
+nohup java -jar techdaily.jar --spring.profiles.active=prod > app.log 2>&1 &
 ```
 
-## 🌐 访问地址
+### 5. 访问应用
 
-部署成功后，可通过以下地址访问：
+- **首页**: http://localhost:8080
+- **管理后台**: http://localhost:8080/spideAdmin/login
+- **API文档**: http://localhost:8080/swagger-ui.html（如果启用）
 
-- **前端门户**: http://47.237.80.97:8080/
-- **管理后台**: http://47.237.80.97:8080/spideAdmin/login
-- **默认账户**: admin / 111111
+### 6. 默认管理员账号
 
-## 📊 状态检查
+- **用户名**: admin
+- **密码**: admin123（首次登录后请及时修改）
 
-```bash
-# 查看应用状态
-./start.sh status
+## 🔧 配置说明
 
-# 查看进程
-ps aux | grep techdaily
-
-# 查看端口
-netstat -tlnp | grep 8080
-
-# 查看日志
-./start.sh logs
+### 数据库配置
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/techdaily?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: techdaily
+    password: TechDaily2025!
 ```
 
-## 🔧 故障排除
-
-### 1. 应用启动失败
-
-```bash
-# 查看详细日志
-./start.sh logs
-
-# 查看错误日志
-tail -f /usr/local/runtime/techdaily/logs/app-error.log
-
-# 检查Java版本
-java -version
-
-# 检查JAR文件
-ls -la /usr/local/runtime/techdaily/techdaily.jar
+### AI服务配置
+```yaml
+alibaba:
+  ai:
+    api-key: your-api-key-here
+    model:
+      translation: qwen-turbo
+      summarization: qwen-plus
 ```
 
-### 2. 数据库连接失败
-
-```bash
-# 测试MySQL连接
-mysql -u root -p"TechDaily2024!" -e "SELECT 1"
-
-# 检查MySQL服务
-systemctl status mysql
-
-# 手动初始化数据库
-./start.sh init
+### 爬虫配置
+```yaml
+crawler:
+  schedule:
+    enabled: true
+  sources:
+    hackernews:
+      enabled: true
+    github:
+      enabled: true
+    devto:
+      enabled: true
 ```
 
-### 3. 日报生成问题（重要）
+## 📋 功能特性
 
-如果遇到"重新生成日报显示没查到最新文章"的问题：
+### ✅ 已实现功能
 
-```bash
-# 查看详细的日报生成日志
-tail -f /usr/local/runtime/techdaily/logs/app-info.log | grep -E "(🔍|📊|🤖|📋|📄|⚠️|✅|❌)"
+1. **文章爬取系统**
+   - 支持 Hacker News、GitHub Trending、Dev.to
+   - 自动去重和内容过滤
+   - 定时爬取任务
 
-# 检查今日文章查询
-# 日志会显示：
-# - 查询时间范围
-# - 查询到的文章数量
-# - 文章详细信息
-# - AI调用参数和耗时
+2. **AI 日报生成**
+   - 基于阿里云百炼大模型
+   - 智能内容总结和分类
+   - 每日趋势分析
 
-# 查看数据库中的文章
-mysql -u root -p"TechDaily2024!" techdaily -e "
-SELECT id, title, publish_time, status, source 
-FROM articles 
-WHERE publish_time >= CURDATE() 
-ORDER BY publish_time DESC 
-LIMIT 10;"
+3. **用户管理系统**
+   - 用户注册登录
+   - 角色权限管理
+   - 密码加密存储
 
-# 查看最近几天的文章
-mysql -u root -p"TechDaily2024!" techdaily -e "
-SELECT DATE(publish_time) as date, COUNT(*) as count 
-FROM articles 
-WHERE publish_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
-GROUP BY DATE(publish_time) 
-ORDER BY date DESC;"
-```
+4. **管理后台**
+   - 文章管理
+   - 日报管理
+   - 爬虫管理
+   - 用户管理
+   - 访问统计
 
-**日志输出说明:**
-- 🔍 表示开始查询文章
-- 📊 表示查询统计信息
-- 🤖 表示AI服务调用
-- 📋 表示文章列表
-- 📄 表示单篇文章信息
-- ⚠️ 表示警告信息
-- ✅ 表示成功操作
-- ❌ 表示错误信息
+5. **前端展示**
+   - 响应式设计
+   - 文章列表和详情
+   - 日报查看
+   - 搜索功能
 
-### 4. 端口被占用
+### 🚧 待完善功能
 
-```bash
-# 查看端口占用
-netstat -tlnp | grep 8080
-lsof -i :8080
+1. **访问统计系统**
+   - 页面访问量统计
+   - 用户行为分析
+   - 数据可视化图表
 
-# 杀死占用进程
-kill -9 <PID>
-```
+2. **缓存优化**
+   - Redis 缓存集成
+   - 热点数据缓存
 
-### 5. 日志问题
+3. **API 接口**
+   - RESTful API
+   - Swagger 文档
 
-```bash
-# 检查日志目录权限
-ls -la /usr/local/runtime/techdaily/logs/
+## 🐛 故障排查
 
-# 检查磁盘空间
-df -h
+### 常见问题
 
-# 清理旧日志（如果需要）
-find /usr/local/runtime/techdaily/logs/ -name "*.log" -mtime +30 -delete
-```
+1. **端口被占用**
+   ```bash
+   # 查看端口占用
+   lsof -i :8080
+   # 杀死进程
+   kill -9 PID
+   ```
 
-## 🔄 更新应用
+2. **数据库连接失败**
+   - 检查数据库服务是否启动
+   - 检查用户名密码是否正确
+   - 检查防火墙设置
 
-```bash
-# 停止应用
-./start.sh stop
+3. **内存不足**
+   ```bash
+   # 调整JVM内存参数
+   java -Xms256m -Xmx512m -jar techdaily.jar
+   ```
 
-# 备份当前版本
-cp techdaily.jar techdaily.jar.backup
+4. **日志查看**
+   ```bash
+   # 查看实时日志
+   tail -f app.log
+   
+   # 查看错误日志
+   grep ERROR app.log
+   ```
 
-# 上传新版本JAR包
-# 然后启动
-./start.sh start
-```
+## 📝 日志配置
 
-## 📝 配置说明
+日志文件位置：
+- 应用日志：`app.log`
+- 错误日志：`error.log`
+- 访问日志：`access.log`
 
-### MySQL 配置
-- 用户名: `root`
-- 密码: `TechDaily2024!`
-- 数据库: `techdaily`
+日志级别：
+- INFO：一般信息
+- WARN：警告信息
+- ERROR：错误信息
+- DEBUG：调试信息（开发环境）
 
-### JVM 参数
-- 初始内存: 512MB
-- 最大内存: 1024MB
-- 垃圾收集器: G1GC
-- 字符编码: UTF-8
-- 时区: Asia/Shanghai
+## 🔐 安全建议
 
-### 应用配置
-- 运行环境: prod
-- 端口: 8080
-- 日志配置: logback-spring.xml
+1. **修改默认密码**
+   - 首次部署后立即修改管理员密码
+   - 定期更新密码
 
-### 日志配置
-- 日志目录: `/usr/local/runtime/techdaily/logs/`
-- 异步日志: 提高性能
-- 按级别分离: INFO、WARN、ERROR分别记录
-- 自动轮换: 按天轮换，自动清理过期日志
+2. **数据库安全**
+   - 使用专用数据库用户
+   - 限制数据库访问权限
+   - 定期备份数据
+
+3. **网络安全**
+   - 配置防火墙规则
+   - 使用HTTPS（生产环境）
+   - 限制管理后台访问IP
+
+4. **API密钥管理**
+   - 妥善保管AI服务API密钥
+   - 定期轮换密钥
+
+## 📞 技术支持
+
+如有问题，请联系：
+- 邮箱：support@techdaily.com
+- 文档：https://docs.techdaily.com
+- Issues：https://github.com/techdaily/techdaily/issues
+
+## 📄 许可证
+
+MIT License - 详见 LICENSE 文件
 
 ---
 
-**部署完成后，请及时修改默认密码并做好安全加固！** 
+**最后更新**: 2025-05-29
+**维护者**: TechDaily Team 

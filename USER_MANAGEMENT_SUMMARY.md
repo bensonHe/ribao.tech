@@ -153,7 +153,7 @@ mvn spring-boot:run
 
 ### 访问地址
 - 管理后台：http://localhost:8080/spideAdmin/login
-- 默认账户：admin / 111111
+- 默认账户：admin / 123456a
 - 用户管理：http://localhost:8080/spideAdmin/users
 
 ### 测试覆盖

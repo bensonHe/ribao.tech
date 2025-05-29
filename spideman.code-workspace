@@ -1,0 +1,46 @@
+{
+    "folders": [
+        {
+            "name": "TechDaily Root",
+            "path": "."
+        },
+        {
+            "name": "Backend",
+            "path": "./backend"
+        },
+        {
+            "name": "Frontend", 
+            "path": "./frontend"
+        },
+        {
+            "name": "Deploy Package",
+            "path": "./deploy-package"
+        }
+    ],
+    "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "automatic",
+        "java.configuration.workspaceCacheLimit": 90,
+        "java.import.maven.enabled": true,
+        "java.project.sourcePaths": [
+            "backend/src/main/java"
+        ],
+        "java.project.outputPath": "backend/target/classes",
+        "files.exclude": {
+            "**/target": true,
+            "**/.classpath": true,
+            "**/node_modules": true,
+            "**/.project": true,
+            "**/.settings": true,
+            "**/.factorypath": true
+        },
+        "java.configuration.maven.userSettings": null
+    },
+    "extensions": {
+        "recommendations": [
+            "vscjava.vscode-java-pack",
+            "redhat.java",
+            "vscjava.vscode-maven"
+        ]
+    }
+} 

@@ -1,0 +1,40 @@
+spring:
+  # 数据库配置（测试环境使用MySQL）
+  datasource:
+    url: jdbc:mysql://47.237.80.97:3306/techdaily?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: techdaily
+    password: TechDaily2025!
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          time_zone: Asia/Shanghai
+
+# 日志配置
+logging:
+  level:
+    com.spideman: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 爬虫配置
+crawler:
+  schedule:
+    enabled: false # 测试环境禁用定时爬取 

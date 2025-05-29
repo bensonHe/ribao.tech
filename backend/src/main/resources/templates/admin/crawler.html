@@ -142,6 +142,7 @@
             <a href="/spideAdmin/dashboard">仪表板</a>
             <a href="/spideAdmin/articles">文章管理</a>
             <a href="/spideAdmin/crawler" class="active">爬虫管理</a>
+            <a href="/spideAdmin/reports">日报管理</a>
             <a href="/spideAdmin/users">用户管理</a>
         </div>
         <div class="user-info">
@@ -166,7 +167,6 @@
                     </p>
                     
                     <form action="/spideAdmin/crawler/quick-crawl" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <button type="submit" class="btn btn-success">⚡ 开始快速爬取</button>
                     </form>
                     
@@ -187,7 +187,6 @@
                     </p>
                     
                     <form action="/spideAdmin/crawler/full-crawl" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <div class="form-group">
                             <label for="articlesPerSource">每个源爬取文章数</label>
                             <input type="number" id="articlesPerSource" name="articlesPerSource" 
@@ -224,7 +223,6 @@
                             </p>
                             
                             <form action="/spideAdmin/crawler/crawl-source" method="post">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <div class="form-group">
                                     <label for="source">选择爬虫源</label>
                                     <select id="source" name="source" required>

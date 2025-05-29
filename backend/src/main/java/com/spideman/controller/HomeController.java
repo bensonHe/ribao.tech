@@ -2,56 +2,210 @@ package com.spideman.controller;
 
 import com.spideman.dto.ArticleDTO;
 import com.spideman.entity.Article;
+import com.spideman.entity.DailyReport;
+import com.spideman.entity.VisitRecord;
 import com.spideman.service.AlibabaAIService;
 import com.spideman.service.ArticleService;
+import com.spideman.service.DailyReportService;
+import com.spideman.service.VisitStatisticsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class HomeController {
     
     private final ArticleService articleService;
+    private final DailyReportService dailyReportService;
     private final AlibabaAIService aiService;
-    private static final Logger log = LoggerFactory.getLogger(HomeController.class);
+    private final VisitStatisticsService visitStatisticsService;
     
     /**
-     * 首页 - 显示最新技术文章
+     * 首页 - 显示今日技术日报
      */
     @GetMapping("/")
-    public String home(Model model, 
-                      @RequestParam(defaultValue = "0") int page,
-                      @RequestParam(defaultValue = "10") int size) {
+    public String home(Model model, HttpServletRequest request) {
+        log.info("🏠 访问首页");
+        long startTime = System.currentTimeMillis();
         
-        // 获取已发布的文章列表
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ArticleDTO> articles = articleService.getArticles(page, size, Article.ArticleStatus.PUBLISHED);
+        // 暂时注释掉访问统计，避免数据库表不存在的问题
+        // visitStatisticsService.recordVisit(request, VisitRecord.PageType.HOME);
         
-        // 获取统计信息
-        long totalArticles = articleService.countAll();
+        try {
+            // 获取今日日报，如果没有则获取最新的日报
+            Optional<DailyReport> todayReport = dailyReportService.getTodayReport();
+            DailyReport displayReport = null;
+            
+            if (todayReport.isPresent()) {
+                displayReport = todayReport.get();
+                log.info("📰 找到今日日报: {}", displayReport.getTitle());
+            } else {
+                // 如果没有今日日报，获取最新发布的日报
+                Optional<DailyReport> latestReport = dailyReportService.getLatestPublishedReport();
+                if (latestReport.isPresent()) {
+                    displayReport = latestReport.get();
+                    log.info("📰 使用最新日报: {} ({})", displayReport.getTitle(), displayReport.getReportDate());
+                } else {
+                    log.warn("⚠️ 没有找到任何日报");
+                }
+            }
+            
+            // 获取统计信息
+            long totalArticles = articleService.countAll();
+            
+            model.addAttribute("dailyReport", displayReport);
+            model.addAttribute("totalArticles", totalArticles);
+            model.addAttribute("currentDate", LocalDate.now().toString());
+            log.info("🏠 首页加载完成，总耗时: {} ms", System.currentTimeMillis() - startTime);
+            return "index";
+            
+        } catch (Exception e) {
+            log.error("❌ 首页加载失败", e);
+            model.addAttribute("error", "页面加载失败: " + e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
+     * 日报详情页
+     */
+    @GetMapping("/report/{reportId}")
+    public String reportDetail(@PathVariable Long reportId, Model model, HttpServletRequest request) {
+        log.info("📖 访问日报详情: {}", reportId);
         
-        model.addAttribute("articles", articles);
-        model.addAttribute("totalArticles", totalArticles);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", articles.getTotalPages());
-        model.addAttribute("hasNext", articles.hasNext());
-        model.addAttribute("hasPrevious", articles.hasPrevious());
+        // 暂时注释掉访问统计，避免数据库表不存在的问题
+        // visitStatisticsService.recordVisit(request, VisitRecord.PageType.REPORT_DETAIL);
         
-        return "index";
+        try {
+            // 直接根据ID查找日报
+            log.info("🔍 开始查找日报ID: {}", reportId);
+            Optional<DailyReport> reportOpt = dailyReportService.getReportById(reportId);
+            log.info("🔍 查找结果: {}", reportOpt.isPresent() ? "找到" : "未找到");
+            
+            if (!reportOpt.isPresent()) {
+                log.warn("⚠️ 日报不存在: {}", reportId);
+                model.addAttribute("error", "日报不存在");
+                return "error";
+            }
+            
+            DailyReport report = reportOpt.get();
+            log.info("📰 找到日报: {} - {}", report.getId(), report.getTitle());
+            
+            // 增加阅读次数
+            dailyReportService.incrementReadCount(reportId);
+            
+            // 获取相关文章
+            List<ArticleDTO> relatedArticles = getRelatedArticles(report);
+            
+            model.addAttribute("report", report);
+            model.addAttribute("relatedArticles", relatedArticles);
+            
+            log.info("✅ 日报详情页面准备完成");
+            return "report-detail";
+            
+        } catch (Exception e) {
+            log.error("❌ 日报详情加载失败: {}", reportId, e);
+            model.addAttribute("error", "日报加载失败: " + e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
+     * 文章列表页面
+     */
+    @GetMapping("/articles")
+    public String articles(Model model, 
+                          @RequestParam(defaultValue = "0") int page,
+                          @RequestParam(defaultValue = "20") int size,
+                          @RequestParam(required = false) String keyword,
+                          HttpServletRequest request) {
+        
+        log.info("📄 访问文章列表页面，页码: {}, 关键词: {}", page, keyword);
+        
+        // 暂时注释掉访问统计，避免数据库表不存在的问题
+        // visitStatisticsService.recordVisit(request, VisitRecord.PageType.ARTICLE_LIST);
+        
+        try {
+            Page<ArticleDTO> articles;
+            
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                // 搜索文章
+                articles = articleService.searchArticles(keyword.trim(), page, size);
+                model.addAttribute("keyword", keyword);
+            } else {
+                // 获取所有已发布文章
+                articles = articleService.getArticles(page, size, Article.ArticleStatus.PUBLISHED);
+            }
+            
+            model.addAttribute("articles", articles);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", articles.getTotalPages());
+            model.addAttribute("hasNext", articles.hasNext());
+            model.addAttribute("hasPrevious", articles.hasPrevious());
+            
+            return "articles";
+            
+        } catch (Exception e) {
+            log.error("❌ 文章列表加载失败", e);
+            model.addAttribute("error", "文章列表加载失败: " + e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
+     * 文章详情页
+     */
+    @GetMapping("/article/{articleId}")
+    public String articleDetail(@PathVariable Long articleId, Model model, HttpServletRequest request) {
+        log.info("📖 访问文章详情: {}", articleId);
+        
+        // 暂时注释掉访问统计，避免数据库表不存在的问题
+        // visitStatisticsService.recordVisit(request, VisitRecord.PageType.ARTICLE_DETAIL);
+        
+        try {
+            Optional<ArticleDTO> articleOpt = articleService.getArticleById(articleId);
+            
+            if (!articleOpt.isPresent()) {
+                model.addAttribute("error", "文章不存在");
+                return "error";
+            }
+            
+            ArticleDTO article = articleOpt.get();
+            
+            // 增加浏览量
+            articleService.incrementViews(articleId);
+            
+            // 获取热门文章作为推荐
+            List<ArticleDTO> recommendedArticles = articleService.getPopularArticles();
+            
+            model.addAttribute("article", article);
+            model.addAttribute("recommendedArticles", recommendedArticles);
+            
+            return "article-detail";
+            
+        } catch (Exception e) {
+            log.error("❌ 文章详情加载失败: {}", articleId, e);
+            model.addAttribute("error", "文章加载失败: " + e.getMessage());
+            return "error";
+        }
     }
     
     /**
@@ -63,101 +217,174 @@ public class HomeController {
     }
     
     /**
-     * 生成每日AI技术日报 - 增强版本
+     * 生成今日AI技术日报 - API接口
      */
     @PostMapping("/api/daily-report")
     @ResponseBody
-    public Map<String, Object> generateDailyReport() {
+    public Map<String, Object> generateTodayReport() {
         long startTime = System.currentTimeMillis();
         Map<String, Object> result = new HashMap<>();
         
-        log.info("🚀 开始生成每日AI技术日报...");
-        log.info("📅 生成时间: {}", java.time.LocalDateTime.now());
+        log.info("🚀 API请求：生成今日AI技术日报");
         
         try {
-            // 获取今日文章
-            log.info("🔍 查询今日文章...");
-            List<Article> todayArticles = articleService.getTodayArticles();
-            log.info("📊 查询到今日文章数量: {}", todayArticles.size());
+            // 生成今日日报
+            DailyReport report = dailyReportService.generateDailyReport(LocalDate.now());
             
-            // 记录文章详细信息
-            if (!todayArticles.isEmpty()) {
-                log.info("📋 今日文章列表:");
-                for (int i = 0; i < Math.min(todayArticles.size(), 10); i++) {
-                    Article article = todayArticles.get(i);
-                    log.info("   {}. [{}] {} (发布时间: {})", 
-                        i + 1, 
-                        article.getSource(),
-                        article.getTitle().length() > 80 ? 
-                            article.getTitle().substring(0, 80) + "..." : article.getTitle(),
-                        article.getPublishTime());
-                }
-                if (todayArticles.size() > 10) {
-                    log.info("   ... 还有 {} 篇文章", todayArticles.size() - 10);
-                }
-            } else {
-                log.warn("⚠️ 今日无文章，将生成空日报");
-            }
-            
-            // 转换为Object列表以适配AI服务方法
-            List<Object> articles = new java.util.ArrayList<>();
-            for (Article article : todayArticles) {
-                articles.add(article);
-            }
-            
-            // 记录AI调用参数
-            log.info("🤖 调用AI服务生成日报...");
-            log.info("📋 AI调用参数:");
-            log.info("   - 输入文章数: {}", articles.size());
-            log.info("   - AI服务: AlibabaAIService.generateDailyReport()");
-            log.info("   - 预期模型: qwen-plus");
-            
-            long aiStartTime = System.currentTimeMillis();
-            
-            // 生成AI日报
-            String dailyReport = aiService.generateDailyReport(articles);
-            
-            long aiEndTime = System.currentTimeMillis();
-            long aiDuration = aiEndTime - aiStartTime;
-            
-            // 记录AI调用结果
-            log.info("🎯 AI日报生成完成:");
-            log.info("   - AI调用耗时: {} ms", aiDuration);
-            log.info("   - 生成内容长度: {} 字符", dailyReport != null ? dailyReport.length() : 0);
-            log.info("   - 内容预览: {}", 
-                dailyReport != null && dailyReport.length() > 100 ? 
-                    dailyReport.substring(0, 100) + "..." : dailyReport);
-            
-            // 构建返回结果
             result.put("success", true);
-            result.put("report", dailyReport);
-            result.put("articleCount", todayArticles.size());
-            result.put("generatedAt", java.time.LocalDateTime.now().toString());
-            result.put("aiDuration", aiDuration);
+            result.put("reportId", report.getId());
+            result.put("title", report.getTitle());
+            result.put("summary", report.getSummary());
+            result.put("articleCount", report.getTotalArticles());
+            result.put("generatedAt", report.getGeneratedAt().toString());
             
             long totalTime = System.currentTimeMillis() - startTime;
-            log.info("✅ 日报生成成功！总耗时: {} ms (查询: {} ms, AI: {} ms)", 
-                totalTime, (aiStartTime - startTime), aiDuration);
+            log.info("✅ 今日日报生成成功！总耗时: {} ms", totalTime);
             
         } catch (Exception e) {
             long totalTime = System.currentTimeMillis() - startTime;
-            log.error("❌ 日报生成失败，总耗时: {} ms", totalTime, e);
-            log.error("💥 错误详情: {}", e.getMessage());
+            log.error("❌ 今日日报生成失败，总耗时: {} ms", totalTime, e);
             
             result.put("success", false);
             result.put("message", "日报生成失败: " + e.getMessage());
             result.put("error", e.getClass().getSimpleName());
             result.put("duration", totalTime);
-            
-            // 记录更详细的错误信息用于调试
-            if (e.getCause() != null) {
-                log.error("🔍 根因: {}", e.getCause().getMessage());
-            }
-            
-            // 尝试提供降级方案
-            result.put("fallbackSuggestion", "请检查网络连接和AI服务配置，或稍后重试");
         }
         
         return result;
+    }
+    
+    /**
+     * 生成指定日期的日报 - API接口
+     */
+    @PostMapping("/api/daily-report/{date}")
+    @ResponseBody
+    public Map<String, Object> generateReportByDate(@PathVariable String date) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            LocalDate targetDate = LocalDate.parse(date);
+            log.info("🚀 API请求：生成 {} 的技术日报", targetDate);
+            
+            DailyReport report = dailyReportService.generateDailyReport(targetDate);
+            
+            result.put("success", true);
+            result.put("reportId", report.getId());
+            result.put("title", report.getTitle());
+            result.put("date", report.getReportDate().toString());
+            result.put("articleCount", report.getTotalArticles());
+            
+        } catch (Exception e) {
+            log.error("❌ {} 日报生成失败", date, e);
+            result.put("success", false);
+            result.put("message", "日报生成失败: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 测试接口：检查日报是否存在
+     */
+    @GetMapping("/api/test/report/{reportId}")
+    @ResponseBody
+    public Map<String, Object> testReportExists(@PathVariable Long reportId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            Optional<DailyReport> reportOpt = dailyReportService.getReportById(reportId);
+            
+            result.put("exists", reportOpt.isPresent());
+            if (reportOpt.isPresent()) {
+                DailyReport report = reportOpt.get();
+                result.put("id", report.getId());
+                result.put("title", report.getTitle());
+                result.put("date", report.getReportDate().toString());
+            }
+            
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 获取相关文章
+     */
+    private List<ArticleDTO> getRelatedArticles(DailyReport report) {
+        try {
+            log.info("📰 获取日报相关文章，日期: {}", report.getReportDate());
+            
+            // 优先获取日报日期当天的文章
+            LocalDate reportDate = report.getReportDate();
+            LocalDateTime startTime = reportDate.atStartOfDay();
+            LocalDateTime endTime = reportDate.plusDays(1).atStartOfDay();
+            
+            // 如果有关联的文章ID，优先使用
+            if (report.getArticleIds() != null && !report.getArticleIds().trim().isEmpty()) {
+                try {
+                    String[] articleIds = report.getArticleIds().split(",");
+                    List<ArticleDTO> specificArticles = new ArrayList<>();
+                    
+                    for (String idStr : articleIds) {
+                        Long articleId = Long.parseLong(idStr.trim());
+                        Optional<ArticleDTO> articleOpt = articleService.getArticleById(articleId);
+                        if (articleOpt.isPresent()) {
+                            specificArticles.add(articleOpt.get());
+                        }
+                    }
+                    
+                    if (!specificArticles.isEmpty()) {
+                        log.info("✅ 通过关联ID找到 {} 篇文章", specificArticles.size());
+                        return specificArticles;
+                    }
+                } catch (Exception e) {
+                    log.warn("解析文章ID失败: {}", report.getArticleIds(), e);
+                }
+            }
+            
+            // 获取日报日期前后几天的文章（扩大范围以确保有文章）
+            LocalDateTime rangeStart = reportDate.minusDays(2).atStartOfDay();
+            LocalDateTime rangeEnd = reportDate.plusDays(2).atStartOfDay();
+            
+            // 获取时间范围内的文章，转换为DTO
+            List<Article> timeRangeArticles = articleService.getArticlesByDateRange(rangeStart, rangeEnd);
+            List<ArticleDTO> timeRangeArticleDTOs = timeRangeArticles.stream()
+                .map(article -> {
+                    ArticleDTO dto = new ArticleDTO();
+                    dto.setId(article.getId());
+                    dto.setTitle(article.getTitle());
+                    dto.setTitleZh(article.getTitleZh());
+                    dto.setSummary(article.getSummary());
+                    dto.setSummaryZh(article.getSummaryZh());
+                    dto.setUrl(article.getUrl());
+                    dto.setSource(article.getSource());
+                    dto.setAuthor(article.getAuthor());
+                    dto.setPublishTime(article.getPublishTime());
+                    dto.setCreatedAt(article.getCreatedAt());
+                    dto.setLikes(article.getLikes());
+                    dto.setViews(article.getViews());
+                    dto.setTags(article.getTags());
+                    dto.setStatus(article.getStatus().name());
+                    return dto;
+                })
+                .limit(10) // 限制最多10篇
+                .collect(Collectors.toList());
+            
+            if (!timeRangeArticleDTOs.isEmpty()) {
+                log.info("✅ 通过日期范围找到 {} 篇文章", timeRangeArticleDTOs.size());
+                return timeRangeArticleDTOs;
+            }
+            
+            // 最后兜底：返回热门文章
+            List<ArticleDTO> popularArticles = articleService.getPopularArticles();
+            log.info("📄 使用热门文章作为兜底，共 {} 篇", popularArticles.size());
+            return popularArticles.size() > 10 ? popularArticles.subList(0, 10) : popularArticles;
+            
+        } catch (Exception e) {
+            log.error("获取相关文章失败", e);
+            return Collections.emptyList();
+        }
     }
 } 

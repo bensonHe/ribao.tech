@@ -11,8 +11,11 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 @Slf4j
@@ -97,32 +100,61 @@ public class AlibabaAIService {
             log.info("✅ 文章预处理完成，实际处理: {} 篇", processedCount);
 
             String currentDate = java.time.LocalDate.now().toString();
+            String dayOfWeek = java.time.LocalDate.now().getDayOfWeek().getDisplayName(
+                java.time.format.TextStyle.FULL, java.util.Locale.CHINESE);
+            
+            // 获取节气信息
+            String solarTerm = getSolarTerm(java.time.LocalDate.now());
+            List<String> listNames = Arrays.asList("雷军", "阮一峰","马斯克", "马云", "李彦宏", "周鸿祎","张小龙", "马化腾", "马云", "李彦宏", "周鸿祎", "王小川");
+            
             String prompt = String.format(
-                "请基于以下今日采集的技术文章，生成一份专业的技术日报总结。\n\n" +
+                "请以["+listNames.get(new Random().nextInt(listNames.size()))+"]的口吻，写一篇适合发布在公众号或技术网站上的 AI 行业日报。\n" +
+                "请根据以下内容，生成一段自然、接近人类撰写风格的文字：\n" +
+                "- 内容需要包含主观感受、评价词，不要机械列举项目；\n" +
+                "- 文风偏“程序员口吻”，可以稍带轻松幽默，但要专业；\n" +
+                "- 每条内容聚焦1-2个重点，用小标题或列表更清晰； \n" +
+                "- 最终输出一段可以直接用于公众号或网站的中文内容。\n" +
                 "文章列表：\n%s\n\n" +
-                "请按照以下格式生成日报：\n\n" +
-                "## 📰 今日技术日报 (%s)\n\n" +
-                "### 🔥 热门话题\n" +
-                "[分析今日文章中出现频率较高的技术话题、趋势]\n\n" +
-                "### 💡 技术趋势\n" +
-                "[分析当前技术发展趋势、新兴技术、行业动态]\n\n" +
-                "### 🎯 关键洞察\n" +
-                "[提炼出的关键技术洞察和行业观点]\n\n" +
-                "### 💡 值得关注的文章推荐\n" +
-                "[列出今日值得关注的文章，并说明推荐理由]\n\n",
+                "请严格按照以下JSON格式返回日报内容：\n\n" +
+                "{\n" +
+                "  \"todayTrends\": \"[今日总结：用400字以内总结今日技术文章中的主要趋势、热点技术、重要动态等, 开头以今天我觉得值得看的一些东西有 或者 我觉得最值得关注的几个点是 或者 最近技术圈比较关注的点在 来开头, 结尾,以你们感觉怎么样 来结尾]\",\n" +
+                "  \"recommendedArticles\": [\n" +
+                "    {\n" +
+                "      \"title\": \"[文章标题]\",\n" +
+                "      \"url\": \"[文章链接]\",\n" +
+                "      \"summary\": \"[文章简介：用200字左右简要介绍文章核心内容]\",\n" +
+                "      \"reason\": \"[推荐理由：用1句话说明为什么推荐这篇文章，例如: 开头以 我觉得这个 或 我发现 或 这个文章值得关注点在于 来开头, 结尾以你们感觉怎么样 或者 值得看一看 或者 可以学习下 来结尾]\",\n" +
+                "      \"source\": \"[文章来源]\",\n" +
+                "      \"author\": \"[文章作者]\"\n" +
+                "    }\n" +
+                "    // 请从上述文章中选择3-5篇最有价值的文章\n" +
+                "  ],\n" +
+                "  \"dailyQuote\": \"[每日一语：结合今日日期（%s，%s）和当前节气（%s），写一句100字以内的鼓励文或名言。目的是新的一天开始、减少焦虑感、鼓励程序员。可以结合技术成长、学习心态、工作生活平衡等主题, 需要带上打工人看开了的语气]\",\n" +
+                "  \"solarTerm\": \"%s\"\n" +
+                "}\n\n" +
+                "注意：\n" +
+                "1. 今日总结必须控制在400字以内\n" +
+                "2. 每日一语必须控制在100字左右\n" +
+                "3. 推荐文章要选择最有价值的3-5篇\n" +
+                "4. 推荐理由要简洁明了，一句话即可\n" +
+                "5. 返回的必须是有效的JSON格式\n" +
+                "6. 文章链接必须使用原文章的真实URL\n" +
+                "7. 不要在reason字段中重复'推荐理由'这个词\n",
                 articlesText.toString(),
-                currentDate
+                currentDate, dayOfWeek, solarTerm,
+                solarTerm
             );
 
             log.info("📝 AI提示词统计:");
             log.info("   - 提示词长度: {} 字符", prompt.length());
-            log.info("   - 目标模型: qwen-plus");
+            log.info("   - 目标模型: qwen-plus-latest");
             log.info("   - 预期输出: Markdown格式日报");
+            log.info("   - 完整prompt为: {}", prompt);    
 
             long aiCallStart = System.currentTimeMillis();
             log.info("🚀 开始调用AI模型...");
 
-            String result = callAlibabaAI("qwen-plus", prompt);
+            String result = callAlibabaAI("qwen-plus-latest", prompt);
             
             long aiCallEnd = System.currentTimeMillis();
             long aiCallDuration = aiCallEnd - aiCallStart;
@@ -132,10 +164,7 @@ public class AlibabaAIService {
             log.info("   - AI调用耗时: {} ms", aiCallDuration);
             log.info("   - 总处理耗时: {} ms", totalDuration);
             log.info("   - 返回内容长度: {} 字符", result != null ? result.length() : 0);
-            log.info("   - 返回内容预览: {}", 
-                result != null && result.length() > 150 ? 
-                    result.substring(0, 150).replaceAll("\n", " ") + "..." : 
-                    (result != null ? result.replaceAll("\n", " ") : "null"));
+            log.info("   - 完整返回内容预览: {}", result);  
 
             return result;
 
@@ -324,6 +353,65 @@ public class AlibabaAIService {
         } catch (Exception e) {
             log.error("调用阿里云AI失败", e);
             return "AI调用异常：" + e.getMessage();
+        }
+    }
+    
+    /**
+     * 获取当前节气
+     */
+    private String getSolarTerm(java.time.LocalDate date) {
+        int month = date.getMonthValue();
+        int day = date.getDayOfMonth();
+        
+        // 简化的节气判断（基于大致日期）
+        if (month == 1) {
+            if (day < 6) return "小寒";
+            else if (day < 20) return "大寒";
+            else return "立春";
+        } else if (month == 2) {
+            if (day < 4) return "立春";
+            else if (day < 19) return "雨水";
+            else return "惊蛰";
+        } else if (month == 3) {
+            if (day < 6) return "惊蛰";
+            else if (day < 21) return "春分";
+            else return "清明";
+        } else if (month == 4) {
+            if (day < 5) return "清明";
+            else if (day < 20) return "谷雨";
+            else return "立夏";
+        } else if (month == 5) {
+            if (day < 6) return "立夏";
+            else if (day < 21) return "小满";
+            else return "芒种";
+        } else if (month == 6) {
+            if (day < 6) return "芒种";
+            else if (day < 22) return "夏至";
+            else return "小暑";
+        } else if (month == 7) {
+            if (day < 7) return "小暑";
+            else if (day < 23) return "大暑";
+            else return "立秋";
+        } else if (month == 8) {
+            if (day < 8) return "立秋";
+            else if (day < 23) return "处暑";
+            else return "白露";
+        } else if (month == 9) {
+            if (day < 8) return "白露";
+            else if (day < 23) return "秋分";
+            else return "寒露";
+        } else if (month == 10) {
+            if (day < 9) return "寒露";
+            else if (day < 24) return "霜降";
+            else return "立冬";
+        } else if (month == 11) {
+            if (day < 8) return "立冬";
+            else if (day < 22) return "小雪";
+            else return "大雪";
+        } else { // month == 12
+            if (day < 7) return "大雪";
+            else if (day < 22) return "冬至";
+            else return "小寒";
         }
     }
 } 

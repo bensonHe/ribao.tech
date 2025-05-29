@@ -64,19 +64,25 @@ CREATE TABLE IF NOT EXISTS daily_reports (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     report_date DATE UNIQUE NOT NULL COMMENT '日报日期',
     title VARCHAR(500) NOT NULL COMMENT '日报标题',
+    summary TEXT COMMENT '日报摘要',
     content TEXT NOT NULL COMMENT '日报内容',
-    summary TEXT COMMENT '摘要',
-    article_count INT DEFAULT 0 COMMENT '文章数量',
+    highlights TEXT COMMENT '今日亮点',
+    trends TEXT COMMENT '技术趋势',
+    article_ids TEXT COMMENT '关联的文章ID，逗号分隔',
+    total_articles INT DEFAULT 0 COMMENT '总文章数',
+    read_count INT DEFAULT 0 COMMENT '阅读次数',
+    status VARCHAR(50) DEFAULT 'DRAFT' COMMENT '状态(DRAFT/GENERATING/PUBLISHED/ARCHIVED)',
+    generated_at TIMESTAMP NULL COMMENT '生成时间',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    status VARCHAR(50) DEFAULT 'PUBLISHED' COMMENT '状态',
     INDEX idx_report_date (report_date),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_generated_at (generated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='日报表';
 
--- 插入默认管理员用户 (密码: 111111)
+-- 插入默认管理员用户 (密码: 123456a)
 INSERT INTO users (username, password, email, role, enabled, created_at) 
-VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9tYjKUiFjFO2/fG', 'admin@techdaily.com', 'ADMIN', TRUE, NOW())
+VALUES ('admin', '$2a$10$U4PgANfJv1On3TuCzHVVJO8XssbJlN2XK9tuZH150fzO5/P0B7z0.', 'admin@techdaily.com', 'ADMIN', TRUE, NOW())
 ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 -- 插入示例文章数据

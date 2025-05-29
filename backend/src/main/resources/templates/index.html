@@ -3,454 +3,536 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="|${#temporals.format(#temporals.createNow(), 'M月d日')},今天全球科技IT界发生了啥|">今天全球科技IT界发生了啥</title>
+    <title>AI技术日报 - 每日自动汇总AI技术领域的热门文章</title>
+    <!-- 移除外部CDN依赖，使用内联样式 -->
     <style>
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+        
         body {
+            background-color: #f8f9fa;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f8fafc;
-            color: #334155;
             line-height: 1.6;
-            padding: 2rem 1rem;
+            color: #333;
         }
         
-        /* 页面标题 */
-        .page-title {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        .page-title h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-        .page-subtitle {
-            color: #64748b;
-            font-size: 1.1rem;
-        }
-        
-        /* 主要内容 */
-        .main-content {
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
+            padding: 0 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 60px 0 40px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .today-highlights {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .today-highlights h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+        }
+        
+        .highlight-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f4;
+            color: #495057;
+            font-size: 1rem;
+        }
+        
+        .highlight-item:last-child {
+            border-bottom: none;
+        }
+        
+        .highlight-item::before {
+            content: "•";
+            color: #007bff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .report-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #e9ecef;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+        
+        .report-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .report-time {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .report-summary {
+            color: #495057;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .load-more {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .no-reports {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .no-reports .icon-large {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
+            .header h1 {
+                font-size: 2.5rem;
             }
-            .page-title h1 {
-                font-size: 2rem;
+            
+            .main-container {
+                padding: 20px 15px;
+            }
+            
+            .today-highlights,
+            .report-card {
+                padding: 20px;
             }
         }
         
-        /* 日报区域 */
-        .daily-report {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
-            height: fit-content;
-            position: sticky;
-            top: 2rem;
-        }
-        .daily-report h2 {
-            color: #1e293b;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .report-content {
-            line-height: 1.6;
-            color: #475569;
-        }
-        .report-content h3 {
-            color: #1e293b;
-            font-size: 1rem;
-            margin: 1rem 0 0.5rem 0;
-        }
-        .report-content ul, .report-content ol {
-            padding-left: 1.5rem;
-            margin: 0.5rem 0;
-        }
-        .report-content li {
-            margin: 0.25rem 0;
-        }
-        .generate-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+        /* 调试样式 */
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
             color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-bottom: 1rem;
-        }
-        .generate-btn:hover {
-            transform: translateY(-1px);
-        }
-        .generate-btn:disabled {
-            opacity: 0.6;
-            transform: none;
-            cursor: not-allowed;
-        }
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-style: italic;
-        }
-        
-        /* 文章列表 */
-        .articles-section h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: #1e293b;
-        }
-        .articles-grid {
-            display: grid;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        /* 文章卡片 */
-        .article-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-        .article-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-        
-        .article-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-        .article-source {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .source-badge {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        
-        .article-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-            line-height: 1.4;
-        }
-        .article-title-zh {
-            color: #64748b;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-        .article-summary {
-            color: #475569;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-        
-        .article-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .article-stats {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        
-        .article-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .tag {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        /* 空状态 */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
-        }
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        .empty-state h3 {
-            margin-bottom: 0.5rem;
-            color: #475569;
-        }
-        
-        /* 分页 */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        .pagination a {
-            padding: 0.5rem 1rem;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            color: #667eea;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .pagination a:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-1px);
-        }
-        .pagination .current {
-            color: #475569;
-            font-weight: 500;
-        }
-        
-        /* 底部 */
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: #64748b;
-            border-top: 1px solid #e2e8f0;
-            margin-top: 2rem;
-        }
-        footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        footer a:hover {
-            text-decoration: underline;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
-    <!-- 页面标题 -->
-    <div class="page-title">
-        <h1 th:text="|${#temporals.format(#temporals.createNow(), 'M月d日')},今天全球科技IT界发生了啥|">5月27日,今天全球科技IT界发生了啥</h1>
-        <p class="page-subtitle">汇聚全球优质技术资讯，AI智能筛选，中英双语对照</p>
+    <!-- 调试信息显示 -->
+    <div id="debug-info" class="debug-info" style="display: none;">
+        <div>页面状态: <span id="page-status">加载中...</span></div>
+        <div>加载时间: <span id="load-time">-</span></div>
+        <div>元素数量: <span id="element-count">-</span></div>
+    </div>
+
+    <!-- 头部 -->
+    <div class="header">
+        <div class="container">
+            <h1>AI 技术日报</h1>
+            <p class="subtitle">每日自动汇总 AI 技术领域的热门文章，提供简短摘要。</p>
+        </div>
     </div>
 
     <!-- 主要内容 -->
-    <main class="main-content">
-        <section class="articles-section">
-            <h2>📰 最新资讯</h2>
-            
-            <!-- 文章列表 -->
-            <div class="articles-grid" th:if="${not #lists.isEmpty(articles.content)}">
-                <article class="article-card" 
-                         th:each="article : ${articles.content}"
-                         th:data-url="${article.url}"
-                         onclick="window.open(this.dataset.url, '_blank')"
-                         style="cursor: pointer;">
-                    
-                    <div class="article-meta">
-                        <div class="article-source">
-                            <span class="source-badge" th:text="${article.source}">Source</span>
-                            <span th:if="${article.author}" th:text="'by ' + ${article.author}"></span>
-                        </div>
-                        <time th:text="${#temporals.format(article.publishTime, 'MM-dd HH:mm')}">时间</time>
-                    </div>
-                    
-                    <h3 class="article-title" th:text="${article.title}">文章标题</h3>
-                    <p class="article-title-zh" 
-                       th:if="${article.titleZh}" 
-                       th:text="${article.titleZh}">中文标题</p>
-                    
-                    <p class="article-summary" 
-                       th:text="${article.summaryZh != null ? article.summaryZh : article.summary}">
-                       文章摘要...
-                    </p>
-                    
-                    <div class="article-footer">
-                        <div class="article-stats">
-                            <span class="stat">
-                                👁️ <span th:text="${article.views}">0</span>
-                            </span>
-                            <span class="stat">
-                                ❤️ <span th:text="${article.likes}">0</span>
-                            </span>
-                        </div>
-                        
-                        <div class="article-tags" th:if="${article.tags}">
-                            <span class="tag" 
-                                  th:each="tag : ${#strings.listSplit(article.tags, ',')}"
-                                  th:text="${tag}">标签</span>
+    <div class="main-container">
+        <!-- 历史日报列表 -->
+        <div id="reports-container">
+            <!-- 今日日报 - 显示完整内容 -->
+            <div class="report-card" th:if="${dailyReport != null}">
+                <div class="report-title" th:text="${dailyReport.reportDate + ' AI日报'}">2025-05-28 AI日报</div>
+                <div class="report-time" th:text="${dailyReport.reportDate + ' 发布'}">2025-05-28 发布</div>
+                
+                <!-- 显示完整的日报内容 -->
+                <div class="report-content">
+                    <!-- 新格式：今日总结 -->
+                    <div th:if="${dailyReport.todayTrends}" style="margin-bottom: 25px;">
+                        <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid #007bff; padding-left: 10px;">📈 今日总结</h3>
+                        <div style="color: #495057; line-height: 1.6;" th:text="${dailyReport.todayTrends}">
+                            今日技术总结内容...
                         </div>
                     </div>
-                </article>
+                    
+                    <!-- 新格式：推荐文章 -->
+                    <div th:if="${dailyReport.recommendedArticles}" style="margin-bottom: 25px;">
+                        <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 15px; border-left: 4px solid #28a745; padding-left: 10px;">📚 今日优质文章推荐</h3>
+                        <div class="recommended-articles-home" th:attr="data-articles=${dailyReport.recommendedArticles}">
+                            <!-- 推荐文章将通过JavaScript渲染 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 新格式：每日一语 -->
+                    <div th:if="${dailyReport.dailyQuote}" style="margin-bottom: 25px;">
+                        <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid #ffc107; padding-left: 10px;">🌟 每日一语</h3>
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; font-style: italic; position: relative;">
+                            <div th:text="${dailyReport.dailyQuote}" style="font-size: 1.1rem; line-height: 1.5;">
+                                每日一语内容...
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;" th:if="${dailyReport.solarTerm}">
+                                <span th:text="'— ' + ${dailyReport.solarTerm}">— 节气</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 兼容旧格式：显示完整内容 -->
+                    <div th:if="${dailyReport.todayTrends == null and dailyReport.content != null}" style="margin-bottom: 20px;">
+                        <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid #6c757d; padding-left: 10px;">📄 完整日报</h3>
+                        <div class="report-full-content" th:utext="${#strings.replace(#strings.replace(dailyReport.content, '&#10;', '<br/>'), '**', '<strong>').replace('**', '</strong>')}" style="color: #495057; line-height: 1.6;">
+                            完整的日报内容将在这里显示...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 查看详情按钮 -->
+                <div style="text-align: center; margin-top: 20px;">
+                    <a th:href="@{'/report/' + ${dailyReport.id}}" class="btn" style="background: #6c757d; text-decoration: none;">
+                        📖 查看详情页面
+                    </a>
+                </div>
             </div>
             
-            <!-- 空状态 -->
-            <div class="empty-state" th:if="${#lists.isEmpty(articles.content)}">
-                <div class="empty-state-icon">📰</div>
-                <h3>暂无文章</h3>
-                <p>正在努力抓取最新技术资讯，请稍后再来查看</p>
+            <!-- 历史日报占位符 -->
+            <div class="report-card" onclick="showComingSoon()">
+                <div class="report-title">2025-05-27 AI日报</div>
+                <div class="report-time">2025-05-27 发布</div>
+                <div class="report-summary">
+                    昨日AI技术领域重要进展回顾，涵盖机器学习、深度学习、自然语言处理等多个方向的最新研究成果。
+                </div>
             </div>
             
-            <!-- 分页导航 -->
-            <nav class="pagination" th:if="${articles.totalPages > 1}">
-                <a th:if="${articles.hasPrevious()}" 
-                   th:href="@{/(page=${currentPage - 1})}">← 上一页</a>
-                
-                <span th:if="${!articles.hasPrevious()}" style="color: #cbd5e1;">← 上一页</span>
-                
-                <span class="current" 
-                      th:text="|第 ${currentPage + 1} 页 / 共 ${articles.totalPages} 页|">
-                      第 1 页 / 共 1 页
-                </span>
-                
-                <a th:if="${articles.hasNext()}" 
-                   th:href="@{/(page=${currentPage + 1})}">下一页 →</a>
-                
-                <span th:if="${!articles.hasNext()}" style="color: #cbd5e1;">下一页 →</span>
-            </nav>
-        </section>
-        
-        <!-- 右侧日报区域 -->
-        <aside class="daily-report">
-            <h2 th:text="|🤖 ${#temporals.format(#temporals.createNow(), 'M月d日')}AI技术日报|">🤖 5月27日AI技术日报</h2>
-            <button class="generate-btn" onclick="generateDailyReport()">
-                🔄 重新生成日报
+            <div class="report-card" onclick="showComingSoon()">
+                <div class="report-title">2025-05-26 AI日报</div>
+                <div class="report-time">2025-05-26 发布</div>
+                <div class="report-summary">
+                    本期聚焦大模型技术突破、AI应用落地案例分析，以及开源AI工具的最新发展动态。
+                </div>
+            </div>
+            
+            <div class="report-card" onclick="showComingSoon()">
+                <div class="report-title">2025-05-25 AI日报</div>
+                <div class="report-time">2025-05-25 发布</div>
+                <div class="report-summary">
+                    AI伦理与安全、计算机视觉新进展、以及AI在各行业的创新应用案例深度解析。
+                </div>
+            </div>
+        </div>
+
+        <!-- 无日报时显示 -->
+        <div class="no-reports" th:if="${dailyReport == null}">
+            <div class="icon-large">📰</div>
+            <h3>今日AI日报尚未生成</h3>
+            <p>系统正在收集今日的AI技术文章，请稍后查看或手动生成日报。</p>
+            <button class="btn btn-success" onclick="generateTodayReport()">
+                <span class="icon">✨</span> 立即生成今日AI日报
             </button>
-            <div id="report-content" class="report-content">
-                <p style="color: #64748b; text-align: center; padding: 2rem 0;">
-                    点击上方按钮生成基于今日采集文章的AI技术日报
-                </p>
-            </div>
-        </aside>
-    </main>
+        </div>
 
-    <!-- 底部链接 -->
-    <footer>
-        <p>
-            🔧 <a href="/spideAdmin/login">管理后台</a> | 
-            📊 <a href="/h2-console">数据库控制台</a> | 
-            🚀 <a href="/api/articles">API文档</a>
-        </p>
-        <p style="margin-top: 0.5rem; font-size: 0.875rem;">
-            © 2025 AI技术日报 - 让技术学习更高效
-        </p>
-    </footer>
+        <!-- 加载更多 -->
+        <div class="load-more">
+            <button class="btn" onclick="loadMoreReports()">
+                <span class="icon">⬇️</span> 查看更多历史日报
+            </button>
+        </div>
+    </div>
 
-    <script th:inline="none">
-        /*<![CDATA[*/
-        // 生成每日技术日报
-        function generateDailyReport() {
-            const button = document.querySelector('.generate-btn');
-            const content = document.getElementById('report-content');
+    <script>
+        // 页面性能监控 - 立即执行
+        const pageStartTime = performance.now();
+        const debugInfo = document.getElementById('debug-info');
+        const pageStatus = document.getElementById('page-status');
+        const loadTime = document.getElementById('load-time');
+        const elementCount = document.getElementById('element-count');
+        
+        // 显示调试信息
+        debugInfo.style.display = 'block';
+        pageStatus.textContent = '脚本开始执行';
+        
+        console.log('🚀 页面开始加载时间:', new Date().toLocaleTimeString());
+        console.log('🔧 调试脚本开始执行');
+        
+        // 立即检查页面状态
+        function updateDebugInfo() {
+            const currentTime = performance.now() - pageStartTime;
+            loadTime.textContent = currentTime.toFixed(2) + 'ms';
+            elementCount.textContent = document.querySelectorAll('*').length;
+        }
+        
+        updateDebugInfo();
+        
+        // 监控DOM内容加载
+        document.addEventListener('DOMContentLoaded', function() {
+            const domTime = performance.now() - pageStartTime;
+            console.log('📄 DOM内容加载完成，耗时:', domTime.toFixed(2) + 'ms');
+            pageStatus.textContent = 'DOM加载完成';
+            updateDebugInfo();
             
-            // 禁用按钮，显示加载状态
+            // 检查页面元素
+            const dailyReport = document.querySelector('.today-highlights');
+            const reportCards = document.querySelectorAll('.report-card');
+            const noReports = document.querySelector('.no-reports');
+            
+            console.log('🔍 页面元素检查:', {
+                hasDailyReport: !!dailyReport,
+                reportCardsCount: reportCards.length,
+                hasNoReportsSection: !!noReports,
+                pageTitle: document.title,
+                bodyClasses: document.body.className
+            });
+            
+            // 渲染首页推荐文章
+            renderHomeRecommendedArticles();
+            
+            console.log('🎯 AI技术日报首页DOM加载完成');
+        });
+        
+        // 渲染首页推荐文章
+        function renderHomeRecommendedArticles() {
+            const container = document.querySelector('.recommended-articles-home');
+            if (!container) return;
+            
+            const articlesData = container.getAttribute('data-articles');
+            if (!articlesData) return;
+            
+            try {
+                const articles = JSON.parse(articlesData);
+                let html = '';
+                
+                articles.forEach((article, index) => {
+                    html += `
+                        <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f8f9fa;">
+                            <h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 1rem;">
+                                <span style="background: #007bff; color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.8rem; margin-right: 8px;">${index + 1}</span>
+                                ${article.title}
+                            </h4>
+                            
+                            <div style="margin-bottom: 8px; font-size: 0.9rem;">
+                                <strong>🔗 链接：</strong> 
+                                <a href="${article.url}" target="_blank" style="color: #007bff; text-decoration: none; word-break: break-all;">${article.url}</a>
+                            </div>
+                            
+                            <div style="margin-bottom: 8px; font-size: 0.9rem;">
+                                <strong>📝 简介：</strong> 
+                                <span style="color: #495057;">${article.summary}</span>
+                            </div>
+                            
+                            <div style="margin-bottom: 8px; font-size: 0.9rem;">
+                                <strong>💡 推荐理由：</strong> 
+                                <span style="color: #495057;">${article.reason}</span>
+                            </div>
+                            
+                            <div style="font-size: 0.8rem; color: #6c757d;">
+                                📂 ${article.source || '未知来源'} 
+                                ${article.author ? `| 👤 ${article.author}` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('解析首页推荐文章数据失败:', error);
+                container.innerHTML = '<p style="color: #6c757d; text-align: center; font-style: italic;">推荐文章数据格式错误</p>';
+            }
+        }
+        
+        // 监控资源加载
+        window.addEventListener('load', function() {
+            const loadTime = performance.now() - pageStartTime;
+            console.log('✅ 页面完全加载完成，耗时:', loadTime.toFixed(2) + 'ms');
+            pageStatus.textContent = '页面加载完成';
+            updateDebugInfo();
+            
+            // 3秒后隐藏调试信息
+            setTimeout(() => {
+                debugInfo.style.display = 'none';
+            }, 3000);
+        });
+        
+        // 生成今日日报
+        function generateTodayReport() {
+            console.log('🔄 开始生成今日日报...');
+            const button = event.target;
+            const originalText = button.innerHTML;
+            const startTime = performance.now();
+            
+            // 显示加载状态
+            button.innerHTML = '<span class="spinner"></span> 生成中...';
             button.disabled = true;
-            button.textContent = '🔄 生成中...';
-            content.innerHTML = '<div class="loading">🤖 AI正在分析今日技术文章，生成专业日报...<br/>这可能需要1-2分钟，请耐心等待</div>';
             
             fetch('/api/daily-report', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                const responseTime = performance.now() - startTime;
+                console.log('📡 API响应时间:', responseTime.toFixed(2) + 'ms');
+                console.log('📊 响应状态:', response.status, response.statusText);
+                return response.json();
+            })
             .then(data => {
+                const totalTime = performance.now() - startTime;
+                console.log('✅ 日报生成完成，总耗时:', totalTime.toFixed(2) + 'ms');
+                console.log('📄 响应数据:', data);
+                
                 if (data.success) {
-                    // 将Markdown转换为HTML显示
-                    const htmlContent = convertMarkdownToHtml(data.report);
-                    content.innerHTML = `
-                        <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f0fff4; border-radius: 4px; font-size: 0.875rem; color: #2f855a;">
-                            ✅ 基于 ${data.articleCount} 篇文章生成 | 生成时间: ${new Date(data.generatedAt).toLocaleString()}
-                        </div>
-                        ${htmlContent}
-                    `;
+                    alert('AI日报生成成功！页面即将刷新。');
+                    window.location.reload();
                 } else {
-                    content.innerHTML = `
-                        <div style="color: #e53e3e; text-align: center; padding: 1rem;">
-                            ❌ ${data.message}
-                        </div>
-                    `;
+                    alert('生成失败：' + (data.message || '未知错误'));
                 }
             })
             .catch(error => {
-                console.error('生成日报失败:', error);
-                content.innerHTML = `
-                    <div style="color: #e53e3e; text-align: center; padding: 1rem;">
-                        ❌ 网络错误，请检查连接后重试
-                    </div>
-                `;
+                const errorTime = performance.now() - startTime;
+                console.error('❌ 请求失败，耗时:', errorTime.toFixed(2) + 'ms');
+                console.error('🚨 错误详情:', error);
+                alert('生成失败：网络错误');
             })
             .finally(() => {
                 // 恢复按钮状态
+                button.innerHTML = originalText;
                 button.disabled = false;
-                button.textContent = '🔄 重新生成日报';
             });
         }
-
-        // 简单的Markdown到HTML转换
-        function convertMarkdownToHtml(markdown) {
-            return markdown
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                .replace(/^\* (.*$)/gim, '<li>$1</li>')
-                .replace(/^• (.*$)/gim, '<li>$1</li>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/^(.*)$/gim, '<p>$1</p>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                .replace(/<p><\/p>/g, '');
+        
+        // 显示即将推出提示
+        function showComingSoon() {
+            console.log('ℹ️ 用户点击历史日报');
+            alert('历史日报功能即将推出，敬请期待！');
         }
-        /*]]>*/
+        
+        // 加载更多日报
+        function loadMoreReports() {
+            console.log('ℹ️ 用户点击加载更多');
+            alert('更多历史日报功能正在开发中，敬请期待！');
+        }
+        
+        // 错误监控
+        window.addEventListener('error', function(e) {
+            console.error('🚨 页面错误:', {
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno,
+                colno: e.colno,
+                error: e.error
+            });
+            pageStatus.textContent = '页面错误: ' + e.message;
+        });
+        
+        // 未处理的Promise错误
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('🚨 未处理的Promise错误:', e.reason);
+            pageStatus.textContent = 'Promise错误';
+        });
+        
+        console.log('🔧 调试脚本加载完成');
     </script>
 </body>
 </html> 

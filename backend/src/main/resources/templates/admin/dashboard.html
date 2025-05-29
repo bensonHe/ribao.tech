@@ -160,10 +160,12 @@
             <a href="/spideAdmin/dashboard" class="active">仪表板</a>
             <a href="/spideAdmin/articles">文章管理</a>
             <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/reports">日报管理</a>
+            <a href="/spideAdmin/statistics">访问统计</a>
             <a href="/spideAdmin/users">用户管理</a>
         </div>
         <div class="user-info">
-            欢迎, <span th:text="${user.username}">admin</span> | 
+            欢迎, <span>admin</span> | 
             <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
         </div>
     </div>
@@ -183,8 +185,26 @@
                 <div class="number" th:text="${totalUsers}">1</div>
             </div>
             <div class="stat-card">
-                <h3>📈 今日爬取</h3>
-                <div class="number">-</div>
+                <h3>👁️ 今日访问量</h3>
+                <div class="number" th:text="${todayStats != null ? todayStats.pageViews : 0}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>🌟 今日独立访客</h3>
+                <div class="number" th:text="${todayStats != null ? todayStats.uniqueVisitors : 0}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>📊 总访问量</h3>
+                <div class="number" th:text="${visitStats != null ? visitStats.totalPageViews : 0}">0</div>
+            </div>
+        </div>
+
+        <!-- 访问统计图表 -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h2>📈 最近7天访问趋势</h2>
+            </div>
+            <div class="card-body">
+                <canvas id="visitChart" width="400" height="200"></canvas>
             </div>
         </div>
 
@@ -223,7 +243,6 @@
                     
                     <div style="margin-top: 1.5rem;">
                         <form action="/spideAdmin/crawler/quick-crawl" method="post" style="margin-bottom: 1rem;">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                             <button type="submit" class="btn" style="width: 100%;">⚡ 快速爬取</button>
                         </form>
                         
@@ -233,5 +252,82 @@
             </div>
         </div>
     </div>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 访问统计图表
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('visitChart').getContext('2d');
+            
+            // 获取图表数据
+            fetch('/spideAdmin/api/statistics/chart?days=7')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.dates,
+                                datasets: [
+                                    {
+                                        label: '页面访问量(PV)',
+                                        data: data.pageViews,
+                                        borderColor: '#667eea',
+                                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                        tension: 0.4,
+                                        fill: true
+                                    },
+                                    {
+                                        label: '独立访客(UV)',
+                                        data: data.uniqueVisitors,
+                                        borderColor: '#764ba2',
+                                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                                        tension: 0.4,
+                                        fill: true
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: '最近7天访问趋势'
+                                    },
+                                    legend: {
+                                        position: 'top',
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            stepSize: 1
+                                        }
+                                    }
+                                },
+                                interaction: {
+                                    intersect: false,
+                                    mode: 'index'
+                                }
+                            }
+                        });
+                    } else {
+                        console.error('获取图表数据失败:', data.message);
+                        document.getElementById('visitChart').style.display = 'none';
+                        document.querySelector('#visitChart').parentElement.innerHTML = 
+                            '<p style="text-align: center; color: #718096; padding: 2rem;">暂无访问统计数据</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('请求图表数据失败:', error);
+                    document.getElementById('visitChart').style.display = 'none';
+                    document.querySelector('#visitChart').parentElement.innerHTML = 
+                        '<p style="text-align: center; color: #718096; padding: 2rem;">加载图表失败</p>';
+                });
+        });
+    </script>
 </body>
 </html> 

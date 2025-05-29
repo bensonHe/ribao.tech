@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${report.title + ' - TechDaily'}">技术日报详情 - TechDaily</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .back-button:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .report-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .report-meta {
+            display: flex;
+            gap: 30px;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .report-summary {
+            color: #555;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .articles-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .article-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+        
+        .article-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        
+        .article-card:last-child {
+            margin-bottom: 0;
+        }
+        
+        .article-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .article-title a {
+            color: #2d3748;
+            text-decoration: none;
+        }
+        
+        .article-title a:hover {
+            color: #667eea;
+        }
+        
+        .article-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .article-summary {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .article-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .no-articles {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .no-articles-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .articles-section {
+                padding: 20px;
+            }
+            
+            .report-meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .article-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 返回按钮 -->
+        <a href="/" class="back-button">
+            ← 返回日报首页
+        </a>
+        
+        <!-- 日报头部信息 -->
+        <div class="header">
+            <h1 class="report-title" th:text="${report.title}">技术日报标题</h1>
+            
+            <div class="report-meta">
+                <div class="meta-item">
+                    📅 <span th:text="${report.reportDate}">2025-01-27</span>
+                </div>
+                <div class="meta-item">
+                    📰 <span th:text="${relatedArticles?.size() ?: 0}">0</span> 篇文章
+                </div>
+                <div class="meta-item">
+                    👀 <span th:text="${report.readCount ?: 0}">0</span> 次阅读
+                </div>
+                <div class="meta-item">
+                    ⏰ <span th:text="${#temporals.format(report.generatedAt, 'HH:mm')}">00:00</span> 生成
+                </div>
+            </div>
+            
+            <div class="report-summary" th:if="${report.summary}" th:text="${report.summary}">
+                日报摘要内容...
+            </div>
+        </div>
+        
+        <!-- 文章列表 -->
+        <div class="articles-section">
+            <h2 class="section-title">
+                📚 文章列表
+            </h2>
+            
+            <!-- 有文章时显示列表 -->
+            <div th:if="${relatedArticles != null and !relatedArticles.isEmpty()}">
+                <div class="article-card" th:each="article : ${relatedArticles}">
+                    <div class="article-title">
+                        <a th:href="${article.url}" target="_blank" th:text="${article.title}">文章标题</a>
+                    </div>
+                    
+                    <div class="article-meta">
+                        <span>🏷️ <span th:text="${article.source}">来源</span></span>
+                        <span>✍️ <span th:text="${article.author}">作者</span></span>
+                        <span>📅 <span th:text="${#temporals.format(article.publishTime, 'MM-dd HH:mm')}">时间</span></span>
+                        <span>👀 <span th:text="${article.views ?: 0}">0</span></span>
+                        <span>❤️ <span th:text="${article.likes ?: 0}">0</span></span>
+                    </div>
+                    
+                    <div class="article-summary" th:if="${article.summary}" th:text="${article.summary}">
+                        文章摘要内容...
+                    </div>
+                    
+                    <div class="article-tags" th:if="${article.tags}">
+                        <span class="tag" th:each="tag : ${#strings.arraySplit(article.tags, ',')}" th:text="${tag}">标签</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 无文章时显示占位 -->
+            <div th:if="${relatedArticles == null or relatedArticles.isEmpty()}" class="no-articles">
+                <div class="no-articles-icon">📄</div>
+                <h3>暂无文章</h3>
+                <p>该日报还没有关联的文章内容</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${report?.id != null ? '编辑日报' : '新建日报'} + ' - TechDaily 管理后台'">日报表单 - TechDaily 管理后台</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 {
+            color: #2d3748;
+            font-size: 24px;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .user-info {
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .page-title {
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            color: white;
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .required {
+            color: #e53e3e;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .form-control-lg {
+            min-height: 200px;
+        }
+        .form-help {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+        .char-count {
+            font-size: 12px;
+            color: #718096;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 2rem;
+        }
+        .preview-section {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        .preview-content {
+            background: white;
+            border-radius: 6px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+        }
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid;
+        }
+        .alert-success {
+            background: #f0fff4;
+            color: #22543d;
+            border-color: #9ae6b4;
+        }
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-color: #fc8181;
+        }
+        .row {
+            display: flex;
+            gap: 1rem;
+            margin: -0.5rem;
+        }
+        .col {
+            flex: 1;
+            padding: 0.5rem;
+        }
+        .col-6 {
+            flex: 0 0 50%;
+            padding: 0.5rem;
+        }
+        .status-info {
+            background: #edf2f7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .status-info h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        .status-info p {
+            color: #4a5568;
+            font-size: 14px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>🕷️ SpideAdmin</h1>
+        </div>
+        <div class="nav">
+            <a href="/spideAdmin/dashboard">仪表板</a>
+            <a href="/spideAdmin/articles">文章管理</a>
+            <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/reports" class="active">日报管理</a>
+            <a href="/spideAdmin/users">用户管理</a>
+        </div>
+        <div class="user-info">
+            欢迎, <span th:text="${session.user?.username ?: 'admin'}">admin</span> | 
+            <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1 class="page-title" th:text="${report?.id != null ? '✏️ 编辑日报' : '➕ 新建日报'}">新建日报</h1>
+            <a href="/spideAdmin/reports" class="btn btn-secondary">
+                ← 返回列表
+            </a>
+        </div>
+
+        <!-- 消息提示 -->
+        <div th:if="${successMessage}" class="alert alert-success">
+            ✅ <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-error">
+            ❌ <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- 日报状态信息 -->
+        <div th:if="${report?.id != null}" class="status-info">
+            <h4>📊 日报信息</h4>
+            <p>
+                <strong>状态:</strong> 
+                <span th:text="${report.status.name() == 'PUBLISHED'} ? '已发布' : 
+                               (${report.status.name() == 'DRAFT'} ? '草稿' : '生成中')">已发布</span>
+                | 
+                <strong>文章数:</strong> <span th:text="${report.totalArticles ?: 0}">0</span> 篇
+                | 
+                <strong>阅读数:</strong> <span th:text="${report.readCount ?: 0}">0</span> 次
+                | 
+                <strong>生成时间:</strong> <span th:text="${#temporals.format(report.generatedAt, 'yyyy-MM-dd HH:mm')}">2025-01-27 10:30</span>
+            </p>
+        </div>
+
+        <!-- 日报表单 -->
+        <div class="card">
+            <div class="card-header">
+                📝 日报内容编辑
+            </div>
+            <div class="card-body">
+                <form th:action="@{/spideAdmin/reports/save}" method="post" id="reportForm">
+                    <input type="hidden" name="id" th:value="${report?.id}">
+                    
+                    <div class="row">
+                        <!-- 基本信息 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="reportDate" class="form-label">
+                                    日报日期 <span class="required">*</span>
+                                </label>
+                                <input type="date" class="form-control" id="reportDate" name="reportDate" 
+                                       th:value="${report?.reportDate}" required>
+                                <div class="form-help">选择日报对应的日期</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="title" class="form-label">
+                                    日报标题 <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       th:value="${report?.title}" required maxlength="200"
+                                       placeholder="例如：2025-01-27 技术日报">
+                                <div class="char-count">
+                                    <span id="titleCount">0</span>/200 字符
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 摘要 -->
+                    <div class="form-group">
+                        <label for="summary" class="form-label">日报摘要</label>
+                        <textarea class="form-control" id="summary" name="summary" 
+                                  th:text="${report?.summary}" maxlength="500"
+                                  placeholder="简要描述今日技术要点和亮点..."></textarea>
+                        <div class="char-count">
+                            <span id="summaryCount">0</span>/500 字符
+                        </div>
+                    </div>
+
+                    <!-- 主要内容 -->
+                    <div class="form-group">
+                        <label for="content" class="form-label">
+                            日报内容 <span class="required">*</span>
+                        </label>
+                        <textarea class="form-control form-control-lg" id="content" name="content" 
+                                  th:text="${report?.content}" required
+                                  placeholder="## 📰 今日技术日报
+
+### 🔥 热门技术动态
+- 技术要点1
+- 技术要点2
+
+### 📊 今日统计
+- 采集文章：X 篇
+- 涵盖技术：技术栈列表
+
+### 🎯 技术趋势
+1. 趋势分析1
+2. 趋势分析2"></textarea>
+                        <div class="form-help">支持 Markdown 格式，用于日报的主要内容展示</div>
+                        <div class="char-count">
+                            <span id="contentCount">0</span> 字符
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- 技术亮点 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="highlights" class="form-label">技术亮点</label>
+                                <textarea class="form-control" id="highlights" name="highlights" 
+                                          th:text="${report?.highlights}"
+                                          placeholder="今日技术领域的重要亮点和突破..."></textarea>
+                                <div class="form-help">提取今日最重要的技术亮点</div>
+                            </div>
+                        </div>
+
+                        <!-- 技术趋势 -->
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="trends" class="form-label">技术趋势</label>
+                                <textarea class="form-control" id="trends" name="trends" 
+                                          th:text="${report?.trends}"
+                                          placeholder="技术发展趋势和方向分析..."></textarea>
+                                <div class="form-help">分析技术发展趋势和未来方向</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 内容预览 -->
+                    <div class="preview-section" style="display: none;" id="previewSection">
+                        <div class="preview-title">📖 内容预览</div>
+                        <div class="preview-content" id="previewContent"></div>
+                    </div>
+
+                    <!-- 表单操作 -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="togglePreview()">
+                            👁️ 预览内容
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                            取消
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            💾 保存日报
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 字符计数
+        function updateCharCount(inputId, countId, maxLength) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(countId);
+            
+            function updateCount() {
+                const length = input.value.length;
+                counter.textContent = length;
+                
+                if (maxLength && length > maxLength * 0.9) {
+                    counter.style.color = '#e53e3e';
+                } else {
+                    counter.style.color = '#718096';
+                }
+            }
+            
+            input.addEventListener('input', updateCount);
+            updateCount(); // 初始化
+        }
+
+        // 初始化字符计数
+        updateCharCount('title', 'titleCount', 200);
+        updateCharCount('summary', 'summaryCount', 500);
+        updateCharCount('content', 'contentCount');
+
+        // 预览功能
+        function togglePreview() {
+            const previewSection = document.getElementById('previewSection');
+            const previewContent = document.getElementById('previewContent');
+            const content = document.getElementById('content').value;
+            
+            if (previewSection.style.display === 'none') {
+                // 显示预览
+                previewContent.textContent = content || '暂无内容';
+                previewSection.style.display = 'block';
+                event.target.textContent = '🙈 隐藏预览';
+            } else {
+                // 隐藏预览
+                previewSection.style.display = 'none';
+                event.target.textContent = '👁️ 预览内容';
+            }
+        }
+
+        // 表单验证
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const reportDate = document.getElementById('reportDate').value;
+            
+            if (!title) {
+                alert('请输入日报标题');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!content) {
+                alert('请输入日报内容');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!reportDate) {
+                alert('请选择日报日期');
+                e.preventDefault();
+                return;
+            }
+            
+            // 显示保存中状态
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '💾 保存中...';
+            submitBtn.disabled = true;
+        });
+
+        // 自动保存草稿（可选功能）
+        let autoSaveTimer;
+        function autoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                console.log('自动保存草稿...');
+                // 这里可以实现自动保存功能
+            }, 30000); // 30秒后自动保存
+        }
+
+        // 监听内容变化
+        ['title', 'summary', 'content', 'highlights', 'trends'].forEach(id => {
+            document.getElementById(id).addEventListener('input', autoSave);
+        });
+    </script>
+</body>
+</html> 

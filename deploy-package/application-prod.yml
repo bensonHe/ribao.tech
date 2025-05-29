@@ -9,8 +9,8 @@ server:
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/techdaily?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: TechDaily2024!
+    username: techdaily
+    password: TechDaily2025!
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -82,7 +82,7 @@ crawler:
 ai:
   enabled: false
   alibaba:
-    api-key: ${ALIBABA_AI_API_KEY:}
+    api-key: sk-da3c4b1e330140b8af7490af53e57607
     model: qwen-plus
 
 # 管理配置

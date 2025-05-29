@@ -26,11 +26,25 @@ public class DailyReport {
     private String title;
     
     @Column(columnDefinition = "TEXT")
-    private String summary; // 日报摘要
+    private String summary; // 日报摘要（保留兼容性）
     
     @Column(columnDefinition = "TEXT")
-    private String content; // 日报内容
+    private String content; // 完整日报内容（保留兼容性）
     
+    // 新的日报格式字段
+    @Column(columnDefinition = "TEXT")
+    private String todayTrends; // 今日趋势（200字以内）
+    
+    @Column(columnDefinition = "TEXT")
+    private String recommendedArticles; // 今日优质文章推荐（JSON格式存储）
+    
+    @Column(columnDefinition = "TEXT")
+    private String dailyQuote; // 每日一语（100字以内）
+    
+    @Column(length = 50)
+    private String solarTerm; // 当日节气
+    
+    // 保留原有字段（兼容性）
     @Column(columnDefinition = "TEXT")
     private String highlights; // 今日亮点
     

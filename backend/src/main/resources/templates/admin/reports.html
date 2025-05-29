@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpideAdmin - 日报管理</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 {
+            color: #2d3748;
+            font-size: 24px;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .user-info {
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .page-title {
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            color: white;
+        }
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 14px;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 0;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th {
+            background: #f7fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .table tr:hover {
+            background: #f7fafc;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-published {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .status-draft {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .status-generating {
+            background: #feebc8;
+            color: #7b341e;
+        }
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid;
+        }
+        .alert-success {
+            background: #f0fff4;
+            color: #22543d;
+            border-color: #9ae6b4;
+        }
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-color: #fc8181;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        .pagination a, .pagination span {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #4a5568;
+        }
+        .pagination a:hover {
+            background: #e2e8f0;
+        }
+        .pagination .current {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .generate-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .generate-form {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+        .form-group {
+            flex: 1;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>🕷️ SpideAdmin</h1>
+        </div>
+        <div class="nav">
+            <a href="/spideAdmin/dashboard">仪表板</a>
+            <a href="/spideAdmin/articles">文章管理</a>
+            <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/reports" class="active">日报管理</a>
+            <a href="/spideAdmin/users">用户管理</a>
+        </div>
+        <div class="user-info">
+            欢迎, <span th:text="${session.user?.username ?: 'admin'}">admin</span> | 
+            <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1 class="page-title">📰 日报管理</h1>
+            <a href="/spideAdmin/reports/form" class="btn">
+                ➕ 新建日报
+            </a>
+        </div>
+
+        <!-- 消息提示 -->
+        <div th:if="${successMessage}" class="alert alert-success">
+            ✅ <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-error">
+            ❌ <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- 快速生成日报 -->
+        <div class="generate-section">
+            <h3 style="margin-bottom: 1rem; color: #2d3748;">🚀 快速生成日报</h3>
+            <div class="generate-form">
+                <div class="form-group">
+                    <label for="generateDate" class="form-label">选择日期</label>
+                    <input type="date" id="generateDate" class="form-control" th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+                </div>
+                <button type="button" class="btn btn-success" onclick="generateReport()">
+                    🤖 AI生成日报
+                </button>
+            </div>
+        </div>
+
+        <!-- 日报列表 -->
+        <div class="card">
+            <div class="card-header">
+                📋 日报列表
+            </div>
+            <div class="card-body">
+                <div th:if="${reports.empty}" class="empty-state">
+                    <div class="icon">📄</div>
+                    <h3>暂无日报</h3>
+                    <p>点击上方"新建日报"按钮创建第一个日报</p>
+                </div>
+                
+                <table th:if="${!reports.empty}" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>日期</th>
+                            <th>标题</th>
+                            <th>状态</th>
+                            <th>文章数</th>
+                            <th>阅读数</th>
+                            <th>生成时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="report : ${reports}">
+                            <td th:text="${report.id}">1</td>
+                            <td th:text="${report.reportDate}">2025-01-27</td>
+                            <td>
+                                <a th:href="@{/report/{id}(id=${report.id})}" 
+                                   th:text="${report.title}" 
+                                   style="color: #667eea; text-decoration: none;">
+                                    日报标题
+                                </a>
+                            </td>
+                            <td>
+                                <span class="status-badge" 
+                                      th:classappend="${report.status.name() == 'PUBLISHED'} ? 'status-published' : (${report.status.name() == 'DRAFT'} ? 'status-draft' : 'status-generating')"
+                                      th:text="${report.status.name() == 'PUBLISHED'} ? '已发布' : (${report.status.name() == 'DRAFT'} ? '草稿' : '生成中')">
+                                    已发布
+                                </span>
+                            </td>
+                            <td th:text="${report.totalArticles ?: 0}">0</td>
+                            <td th:text="${report.readCount ?: 0}">0</td>
+                            <td th:text="${report.generatedAt != null ? #temporals.format(report.generatedAt, 'MM-dd HH:mm') : '-'}">01-27 10:30</td>
+                            <td>
+                                <div class="actions">
+                                    <a th:href="@{/spideAdmin/reports/form(id=${report.id})}" 
+                                       class="btn btn-sm btn-warning">
+                                        ✏️ 编辑
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-success" 
+                                            th:data-date="${report.reportDate}"
+                                            onclick="regenerateReport(this.dataset.date)">
+                                        🔄 重新生成
+                                    </button>
+                                    <form th:action="@{/spideAdmin/reports/{id}/delete(id=${report.id})}" 
+                                          method="post" 
+                                          style="display: inline;"
+                                          onsubmit="return confirm('确定要删除这个日报吗？')">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            🗑️ 删除
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div th:if="${totalPages > 1}" class="pagination">
+            <a th:if="${hasPrevious}" th:href="@{/spideAdmin/reports(page=${currentPage - 1})}">上一页</a>
+            
+            <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <a th:if="${i != currentPage}" 
+                   th:href="@{/spideAdmin/reports(page=${i})}" 
+                   th:text="${i + 1}">1</a>
+                <span th:if="${i == currentPage}" 
+                      class="current" 
+                      th:text="${i + 1}">1</span>
+            </span>
+            
+            <a th:if="${hasNext}" th:href="@{/spideAdmin/reports(page=${currentPage + 1})}">下一页</a>
+        </div>
+    </div>
+
+    <script>
+        // 生成日报
+        function generateReport() {
+            const dateInput = document.getElementById('generateDate');
+            const date = dateInput.value;
+            
+            if (!date) {
+                alert('请选择日期');
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🔄 生成中...';
+            button.disabled = true;
+            
+            fetch('/spideAdmin/reports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'date=' + encodeURIComponent(date)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('日报生成成功！');
+                    window.location.reload();
+                } else {
+                    alert('生成失败：' + (data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('生成失败：' + error.message);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+        
+        // 重新生成日报
+        function regenerateReport(date) {
+            if (!confirm('确定要重新生成 ' + date + ' 的日报吗？这将覆盖现有内容。')) {
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🔄 生成中...';
+            button.disabled = true;
+            
+            fetch('/spideAdmin/reports/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'date=' + encodeURIComponent(date)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('日报重新生成成功！');
+                    window.location.reload();
+                } else {
+                    alert('生成失败：' + (data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('生成失败：' + error.message);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html> 

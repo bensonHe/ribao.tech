@@ -28,7 +28,7 @@ mvn spring-boot:run
 
 ### 2. 访问管理后台
 - 访问：http://localhost:8080/spideAdmin/login
-- 默认账户：admin / 111111
+- 默认账户：admin / 123456a
 
 ### 3. 测试用户管理功能
 

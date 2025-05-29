@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpideAdmin - 统计分析</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo h1 { color: #2d3748; font-size: 24px; }
+        .nav { display: flex; gap: 1rem; }
+        .nav a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .nav a:hover, .nav a.active { background: #e2e8f0; color: #2d3748; }
+        .user-info { color: #4a5568; font-size: 14px; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .chart-title {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .coming-soon {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <h1>🕷️ SpideAdmin</h1>
+        </div>
+        <div class="nav">
+            <a href="/spideAdmin/dashboard">仪表板</a>
+            <a href="/spideAdmin/articles">文章管理</a>
+            <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/reports">日报管理</a>
+            <a href="/spideAdmin/statistics" class="active">统计分析</a>
+            <a href="/spideAdmin/users">用户管理</a>
+        </div>
+        <div class="user-info">
+            欢迎, admin | 
+            <a href="/spideAdmin/logout" style="color: #e53e3e;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 style="color: #2d3748; margin-bottom: 2rem;">📊 统计分析</h1>
+        
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📰</div>
+                <div class="stat-number" th:text="${totalArticles ?: 0}">0</div>
+                <div class="stat-label">总文章数</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-number" th:text="${totalReports ?: 0}">0</div>
+                <div class="stat-label">总日报数</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" th:text="${totalUsers ?: 0}">0</div>
+                <div class="stat-label">用户数量</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-number" th:text="${totalViews ?: 0}">0</div>
+                <div class="stat-label">总阅读量</div>
+            </div>
+        </div>
+        
+        <!-- 图表区域 -->
+        <div class="chart-container">
+            <div class="chart-title">📈 文章发布趋势</div>
+            <div class="coming-soon">
+                图表功能开发中，敬请期待...
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title">🔥 热门来源分析</div>
+            <div class="coming-soon">
+                来源分析功能开发中，敬请期待...
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

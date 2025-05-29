@@ -20,7 +20,7 @@ public class ScheduleConfig {
     /**
      * 每天早上8点自动爬取技术文章
      */
-    @Scheduled(cron = "0 0 8 * * ?")
+    @Scheduled(cron = "0 0 1 * * ?")
     public void scheduledCrawl() {
         log.info("⏰ 定时任务开始：每日技术文章爬取");
         try {
@@ -33,19 +33,4 @@ public class ScheduleConfig {
         }
     }
     
-    /**
-     * 每4小时进行一次快速爬取
-     */
-    @Scheduled(fixedRate = 4 * 60 * 60 * 1000) // 4小时
-    public void quickCrawl() {
-        log.info("⚡ 快速爬取任务开始");
-        try {
-            crawlerService.crawlAllSources(1)
-                .thenAccept(result -> {
-                    log.info("✅ 快速爬取完成：成功 {} 篇", result.get("totalSuccess"));
-                });
-        } catch (Exception e) {
-            log.error("❌ 快速爬取失败", e);
-        }
-    }
 } 

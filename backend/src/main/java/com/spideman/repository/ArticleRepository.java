@@ -25,7 +25,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     Page<Article> findByStatusOrderByPublishTimeDesc(Article.ArticleStatus status, Pageable pageable);
     
     // 根据时间范围查询文章
-    @Query("SELECT a FROM Article a WHERE a.publishTime BETWEEN :startTime AND :endTime ORDER BY a.publishTime DESC")
+    @Query("SELECT a FROM Article a WHERE a.createdAt BETWEEN :startTime AND :endTime ORDER BY a.publishTime DESC")
     List<Article> findByPublishTimeBetween(@Param("startTime") LocalDateTime startTime, 
                                          @Param("endTime") LocalDateTime endTime);
     

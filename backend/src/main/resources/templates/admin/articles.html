@@ -182,6 +182,7 @@
             <a href="/spideAdmin/dashboard">仪表板</a>
             <a href="/spideAdmin/articles" class="active">文章管理</a>
             <a href="/spideAdmin/crawler">爬虫管理</a>
+            <a href="/spideAdmin/reports">日报管理</a>
             <a href="/spideAdmin/users">用户管理</a>
         </div>
         <div class="user-info">
@@ -275,7 +276,6 @@
                             <form th:action="@{/spideAdmin/articles/{id}/delete(id=${article.id})}" 
                                   method="post" style="display: inline-block;"
                                   onsubmit="return confirm('确定要删除这篇文章吗？')">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-danger btn-sm">
                                     🗑️ 删除
                                 </button>
@@ -310,17 +310,6 @@
     </div>
 
     <script>
-        // 获取CSRF Token
-        function getCsrfToken() {
-            return document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || 
-                   document.querySelector('input[name="_csrf"]')?.value;
-        }
-
-        // 获取CSRF Header
-        function getCsrfHeader() {
-            return document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '_csrf';
-        }
-
         // 翻译文章标题
         function translateArticle(articleId) {
             const resultDiv = document.getElementById('ai-result-' + articleId);
@@ -330,8 +319,7 @@
             fetch('/spideAdmin/articles/' + articleId + '/translate', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    [getCsrfHeader()]: getCsrfToken()
+                    'Content-Type': 'application/json'
                 }
             })
             .then(response => response.json())
@@ -361,8 +349,7 @@
             fetch('/spideAdmin/articles/' + articleId + '/summarize', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    [getCsrfHeader()]: getCsrfToken()
+                    'Content-Type': 'application/json'
                 }
             })
             .then(response => response.json())
