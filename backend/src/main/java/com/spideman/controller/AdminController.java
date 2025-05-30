@@ -706,6 +706,49 @@ public class AdminController {
     }
     
     /**
+     * 手动触发爬虫+日报生成流程（测试用）
+     */
+    @PostMapping("/test/crawl-and-generate")
+    @ResponseBody
+    public Map<String, Object> testCrawlAndGenerateReport() {
+        Map<String, Object> result = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        
+        try {
+            log.info("🧪 手动测试：开始爬虫+日报生成流程");
+            
+            // 第一步：爬取文章
+            crawlerService.crawlAllSources(3) // 测试时只爬取3篇文章
+                .thenAccept(crawlResult -> {
+                    log.info("✅ 测试爬取完成：成功 {} 篇", crawlResult.get("totalSuccess"));
+                    
+                    // 第二步：生成当天日报
+                    try {
+                        dailyReportService.generateDailyReport(today);
+                        log.info("✅ 测试日报生成成功");
+                    } catch (Exception e) {
+                        log.error("❌ 测试日报生成失败", e);
+                    }
+                })
+                .exceptionally(ex -> {
+                    log.error("❌ 测试爬取失败", ex);
+                    return null;
+                });
+            
+            result.put("success", true);
+            result.put("message", "爬虫+日报生成流程已启动，请查看日志获取详细进度");
+            result.put("date", today.toString());
+            
+        } catch (Exception e) {
+            log.error("测试流程启动失败", e);
+            result.put("success", false);
+            result.put("message", "流程启动失败: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
      * 访问统计页面
      */
     @GetMapping("/statistics")

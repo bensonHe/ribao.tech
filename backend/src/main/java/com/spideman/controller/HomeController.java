@@ -50,28 +50,15 @@ public class HomeController {
         // visitStatisticsService.recordVisit(request, VisitRecord.PageType.HOME);
         
         try {
-            // 获取今日日报，如果没有则获取最新的日报
-            Optional<DailyReport> todayReport = dailyReportService.getTodayReport();
-            DailyReport displayReport = null;
+            // 获取最近10天的日报数据，按日期倒序排列（只包含今天及之前的日期）
+            List<DailyReport> recentReports = dailyReportService.getRecentReports(10);
             
-            if (todayReport.isPresent()) {
-                displayReport = todayReport.get();
-                log.info("📰 找到今日日报: {}", displayReport.getTitle());
-            } else {
-                // 如果没有今日日报，获取最新发布的日报
-                Optional<DailyReport> latestReport = dailyReportService.getLatestPublishedReport();
-                if (latestReport.isPresent()) {
-                    displayReport = latestReport.get();
-                    log.info("📰 使用最新日报: {} ({})", displayReport.getTitle(), displayReport.getReportDate());
-                } else {
-                    log.warn("⚠️ 没有找到任何日报");
-                }
-            }
+            log.info("📰 找到 {} 个最近日报", recentReports.size());
             
             // 获取统计信息
             long totalArticles = articleService.countAll();
             
-            model.addAttribute("dailyReport", displayReport);
+            model.addAttribute("recentReports", recentReports);
             model.addAttribute("totalArticles", totalArticles);
             model.addAttribute("currentDate", LocalDate.now().toString());
             log.info("🏠 首页加载完成，总耗时: {} ms", System.currentTimeMillis() - startTime);

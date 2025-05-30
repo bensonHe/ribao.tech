@@ -160,6 +160,21 @@
             background: #218838;
         }
         
+        .btn-link {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+        
+        .btn-link:hover {
+            background: #5a6268;
+        }
+        
         .no-reports {
             text-align: center;
             padding: 60px 20px;
@@ -241,48 +256,48 @@
 
     <!-- 主要内容 -->
     <div class="main-container">
-        <!-- 历史日报列表 -->
+        <!-- 最近日报列表 -->
         <div id="reports-container">
-            <!-- 今日日报 - 显示完整内容 -->
-            <div class="report-card" th:if="${dailyReport != null}">
-                <div class="report-title" th:text="${dailyReport.reportDate + ' AI日报'}">2025-05-28 AI日报</div>
-                <div class="report-time" th:text="${dailyReport.reportDate + ' 发布'}">2025-05-28 发布</div>
+            <!-- 循环显示所有日报，都作为主要内容 -->
+            <div th:if="${recentReports != null and !recentReports.empty}" th:each="report : ${recentReports}" class="report-card">
+                <div class="report-title" th:text="${#temporals.format(report.reportDate, 'yyyy-MM-dd') + ' AI日报'}">AI日报</div>
+                <div class="report-time" th:text="${#temporals.format(report.reportDate, 'yyyy-MM-dd') + ' 发布'}">发布</div>
                 
                 <!-- 显示完整的日报内容 -->
                 <div class="report-content">
                     <!-- 新格式：今日总结 -->
-                    <div th:if="${dailyReport.todayTrends}" style="margin-bottom: 25px;">
+                    <div th:if="${report.todayTrends}" style="margin-bottom: 25px;">
                         <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid #007bff; padding-left: 10px;">📈 今日总结</h3>
-                        <div style="color: #495057; line-height: 1.6;" th:text="${dailyReport.todayTrends}">
+                        <div style="color: #495057; line-height: 1.6;" th:text="${report.todayTrends}">
                             今日技术总结内容...
                         </div>
                     </div>
                     
                     <!-- 新格式：推荐文章 -->
-                    <div th:if="${dailyReport.recommendedArticles}" style="margin-bottom: 25px;">
+                    <div th:if="${report.recommendedArticles}" style="margin-bottom: 25px;">
                         <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 15px; border-left: 4px solid #28a745; padding-left: 10px;">📚 今日优质文章推荐</h3>
-                        <div class="recommended-articles-home" th:attr="data-articles=${dailyReport.recommendedArticles}">
+                        <div class="recommended-articles-home" th:attr="data-articles=${report.recommendedArticles}">
                             <!-- 推荐文章将通过JavaScript渲染 -->
                         </div>
                     </div>
                     
                     <!-- 新格式：每日一语 -->
-                    <div th:if="${dailyReport.dailyQuote}" style="margin-bottom: 25px;">
+                    <div th:if="${report.dailyQuote}" style="margin-bottom: 25px;">
                         <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid #ffc107; padding-left: 10px;">🌟 每日一语</h3>
                         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; font-style: italic; position: relative;">
-                            <div th:text="${dailyReport.dailyQuote}" style="font-size: 1.1rem; line-height: 1.5;">
+                            <div th:text="${report.dailyQuote}" style="font-size: 1.1rem; line-height: 1.5;">
                                 每日一语内容...
                             </div>
-                            <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;" th:if="${dailyReport.solarTerm}">
-                                <span th:text="'— ' + ${dailyReport.solarTerm}">— 节气</span>
+                            <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;" th:if="${report.solarTerm}">
+                                <span th:text="'— ' + ${report.solarTerm}">— 节气</span>
                             </div>
                         </div>
                     </div>
                     
                     <!-- 兼容旧格式：显示完整内容 -->
-                    <div th:if="${dailyReport.todayTrends == null and dailyReport.content != null}" style="margin-bottom: 20px;">
+                    <div th:if="${report.todayTrends == null and report.content != null}" style="margin-bottom: 20px;">
                         <h3 style="color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px; border-left: 4px solid #6c757d; padding-left: 10px;">📄 完整日报</h3>
-                        <div class="report-full-content" th:utext="${#strings.replace(#strings.replace(dailyReport.content, '&#10;', '<br/>'), '**', '<strong>').replace('**', '</strong>')}" style="color: #495057; line-height: 1.6;">
+                        <div class="report-full-content" th:utext="${#strings.replace(#strings.replace(report.content, '&#10;', '<br/>'), '**', '<strong>').replace('**', '</strong>')}" style="color: #495057; line-height: 1.6;">
                             完整的日报内容将在这里显示...
                         </div>
                     </div>
@@ -290,43 +305,27 @@
                 
                 <!-- 查看详情按钮 -->
                 <div style="text-align: center; margin-top: 20px;">
-                    <a th:href="@{'/report/' + ${dailyReport.id}}" class="btn" style="background: #6c757d; text-decoration: none;">
+                    <a th:href="@{'/report/' + ${report.id}}" class="btn" style="background: #6c757d; text-decoration: none;">
                         📖 查看详情页面
                     </a>
                 </div>
             </div>
             
-            <!-- 历史日报占位符 -->
-            <div class="report-card" onclick="showComingSoon()">
-                <div class="report-title">2025-05-27 AI日报</div>
-                <div class="report-time">2025-05-27 发布</div>
+            <!-- 暂无日报时的提示 -->
+            <div th:if="${recentReports == null or recentReports.empty}" class="report-card">
+                <div class="report-title">暂无日报</div>
+                <div class="report-time">敬请期待</div>
                 <div class="report-summary">
-                    昨日AI技术领域重要进展回顾，涵盖机器学习、深度学习、自然语言处理等多个方向的最新研究成果。
-                </div>
-            </div>
-            
-            <div class="report-card" onclick="showComingSoon()">
-                <div class="report-title">2025-05-26 AI日报</div>
-                <div class="report-time">2025-05-26 发布</div>
-                <div class="report-summary">
-                    本期聚焦大模型技术突破、AI应用落地案例分析，以及开源AI工具的最新发展动态。
-                </div>
-            </div>
-            
-            <div class="report-card" onclick="showComingSoon()">
-                <div class="report-title">2025-05-25 AI日报</div>
-                <div class="report-time">2025-05-25 发布</div>
-                <div class="report-summary">
-                    AI伦理与安全、计算机视觉新进展、以及AI在各行业的创新应用案例深度解析。
+                    系统将陆续生成更多AI技术日报，为您提供更丰富的技术资讯和深度分析。
                 </div>
             </div>
         </div>
 
         <!-- 无日报时显示 -->
-        <div class="no-reports" th:if="${dailyReport == null}">
+        <div class="no-reports" th:if="${recentReports == null or recentReports.empty}">
             <div class="icon-large">📰</div>
-            <h3>今日AI日报尚未生成</h3>
-            <p>系统正在收集今日的AI技术文章，请稍后查看或手动生成日报。</p>
+            <h3>暂无AI日报</h3>
+            <p>系统正在收集AI技术文章，请稍后查看或手动生成日报。</p>
             <button class="btn btn-success" onclick="generateTodayReport()">
                 <span class="icon">✨</span> 立即生成今日AI日报
             </button>
@@ -500,12 +499,6 @@
                 button.innerHTML = originalText;
                 button.disabled = false;
             });
-        }
-        
-        // 显示即将推出提示
-        function showComingSoon() {
-            console.log('ℹ️ 用户点击历史日报');
-            alert('历史日报功能即将推出，敬请期待！');
         }
         
         // 加载更多日报

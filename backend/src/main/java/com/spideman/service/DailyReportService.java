@@ -65,6 +65,19 @@ public class DailyReportService {
     }
     
     /**
+     * 获取最近N天的日报（已发布的）
+     */
+    public List<DailyReport> getRecentReports(int days) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(days - 1);
+        return dailyReportRepository.findByReportDateAfterOrderByReportDateDesc(startDate)
+                .stream()
+                .filter(report -> report.getStatus() == DailyReport.ReportStatus.PUBLISHED)
+                .filter(report -> !report.getReportDate().isAfter(today)) // 不包含未来日期
+                .collect(Collectors.toList());
+    }
+    
+    /**
      * 生成指定日期的技术日报
      */
     @Transactional
@@ -168,22 +181,6 @@ public class DailyReportService {
             generateDailyReport(LocalDate.now());
         } catch (Exception e) {
             log.error("异步生成今日日报失败", e);
-        }
-    }
-    
-    /**
-     * 定时任务：每日02:00生成昨日日报
-     */
-    @Scheduled(cron = "0 0 2 * * ?") // 每天凌晨2点执行
-    public void generateYesterdayReportScheduled() {
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        log.info("🕐 定时任务启动：生成 {} 的技术日报", yesterday);
-        
-        try {
-            generateDailyReport(yesterday);
-            log.info("✅ 定时任务完成：{} 的技术日报生成成功", yesterday);
-        } catch (Exception e) {
-            log.error("❌ 定时任务失败：{} 的技术日报生成失败", yesterday, e);
         }
     }
     
